@@ -1,37 +1,40 @@
-# Market storage contract: DuckDB, Parquet and Qlib Binary
+# 数据合同：DuckDB 来源、Parquet 冻结、Qlib 转换
 
-Status: IMPLEMENTED + SYNTHETIC DUCKDB/PARQUET INTEGRATION TESTS. Actual Tushare proxy coverage, full Qlib run and TSP deployment remain unverified.
+**实现和验证范围**：src/ashare_quant_lab/market_store.py、market_ingest.py、market_export.py、qlib_dump.py；已通过合成记录的 DuckDB/Parquet CI。用户真实 Tushare 数据、全市场覆盖和 Qlib 端到端尚未验证。
 
-## Storage authority
+## 数据权威与生命周期
 
-- DuckDB: source and revision history, one local market-data authority. Its database file is under data/market.duckdb by default.
-- Parquet: immutable research snapshot per security, derived from completed DuckDB captures. Each file has SHA256 and a manifest listing contributing capture IDs.
-- Qlib Binary: official Qlib dump_bin.py output from the verified Parquet snapshot, never another proprietary market database. The output records input manifest and converter hashes.
-- TSP: separate host with its own DuckDB/Parquet UI data. It accesses this lab's completed records by a narrow read-only daily/adj_factor gateway, never shared writable SQL.
-- MRA: an independent, untouched existing project.
+| 层 | 当前 Owner / 内容 | 可做出的结论 |
+| --- | --- | --- |
+| DuckDB | 本仓库市场采集记录：captures、daily_bars、trade_sessions；Schema 指纹阻止误写其他库 | 某次接口采集了哪些记录，不代表历史公开可得 |
+| Parquet | 从已完成采集导出的证券级调整后行情，manifest v2、文件 SHA256、贡献 capture_id | 本地字节与采集批次的可复现投影 |
+| Qlib Binary | 官方 dump_bin.py 从已校验 Parquet 转换，保存源 manifest 与转换器摘要 | 本次模型读取的数据来源；尚未独立运行验证 |
+| TSP 本地缓存 | 原生行情 K 线与展示数据；使用只读历史数据网关 | 页面展示副本，不能独立决定研究数据版本 |
 
-## Capture and read semantics
+不再使用 CSV 作为**现行研究链路**，也不要求 PostgreSQL。需要服务并发或速度改造时，以真实吞吐、磁盘、延迟证据为准。
 
-DuckDB uses an AQL schema-version sentinel. A new market file is initialized only when the path does not already exist; opening an existing DuckDB file without the correct AQL schema identity fails rather than writing into another application's database, including a TSP database. The schema has captures, daily_bars and trade_sessions tables. Each capture records immutable ID, requested scope, started/completed timestamps, source and state (RUNNING, COMPLETE or FAILED). Daily rows retain symbol/date, raw OHLC, shares, CNY amount, cumulative factor and actual retrieval timestamp. Sessions currently use the source SSE trade calendar.
+## 已实现的采集/查询机制
 
-Each requested batch is committed per security and becomes visible to the research query layer only after the whole capture completes. Failed captures are marked FAILED and their unfinished records removed; prior COMPLETE captures remain intact. Re-ingest creates a new capture rather than updating old observations. For each stock and date, queries choose the latest COMPLETE captured version. Incremental updates can cover a shorter date interval without replacing older completed history.
+每次采集申请新的 capture_id：RUNNING → COMPLETE 或 FAILED。每只股票导入在事务中写入；仅 COMPLETE 批次可被查询和快照采用，FAILED 残余行情被排除。对于同一股票和交易日，查询根据完成时间选择最近批次的记录。旧成功批次仍可供追溯。
 
-**DuckDB permits only one writer process per database.** In this first local deployment, stop the TSP read-only gateway before opening a separate ingest writer, then restart the gateway. Multi-process read-while-write is not promised. Backup/restoration should run after closing all DB processes.
+已存字段：不复权 OHLC、成交量（由 Tushare 手转换为股）、成交额（千元转换为元）、Tushare 累计复权因子、采集时点与交易日历（目前 SSE）。TSP 需要的是**单次事件因子**，不能直接把累计因子写入 ex_factor。
 
-## Financial correctness boundaries
+DuckDB 当前仅支持独立进程单写。已有其他读网关占用同一文件时，先停网关再采集；未实现跨进程在线读写切换。没有对 TSP/MRA 数据库写入授权。
 
-- Tushare daily OHLC is unadjusted. Source daily vol is hands (100 shares) and amount is thousands of yuan. Store shares and yuan in DuckDB, without altering the raw OHLC.
-- Preserve source cumulative adjustment factor. Qlib research Parquet normalizes it to the first available covered observation and applies it to OHLC and VWAP, inverse-adjusts share volume, and preserves turnover amount.
-- TSP event ex_factor is the ratio between consecutive available cumulative factors, NOT the cumulative factor itself. The first observed day is an unknown-baseline day; it does not prove that any earlier corporate action was accounted for.
-- If factor, price, VWAP numerator or data coverage is inadequate, reject the affected research export. A market-data source capture does not prove the historical point at which information became publicly available.
-- A-share historical securities, delistings, suspensions, board-specific limits and investor cash dividends need independent evidence before claiming executable portfolio gains.
+## 尚未封闭的数据真实性问题
 
-## Snapshot integrity / provenance
+1. **混合修订**：最新完成记录按股票/日期选取，可能把不同采集批次的**累计复权因子**拼接在一起；需验证修订一致性、复权日期和调整后收益是否出现虚假跳变。
+2. **数据覆盖**：采集只要求指定股票有日线及因子且日期属于 SSE 交易日；没有证明所有应有交易日均被覆盖，缺失、停牌、未上市及接口失败必须分开解释。
+3. **证券池和公司行为**：当前研究固定30只股票，不含历史完整上市/退市/ST/指数成分、公告公开时钟、完整现金分红及证券实际可交易状态。不能宣称全市场 PIT 或净收益正确。
+4. **快照强度**：manifest SHA 证明文件内容相符，不证明来源曾在历史研究时点公开可用；数据库本身也不是 WORM 审计系统，恢复与备份资格未验证。
+5. **采集 API**：交易日历探针只核查 trade_cal，不等价于日线/复权接口真实权限；源限流、分页、响应上限和跨日期增量需要实际验证。
 
-Parquet export refuses an existing directory and uses temporary staging then atomic rename. Its schema_version=2 manifest records file_format=parquet, snapshot period, symbol coverage, source_capture_ids, SHA256 per file and explicit RETROSPECTIVE_ONLY status. The converter checks every declared Parquet file and rejects undeclared files, and saves the input manifest hash plus converter hash. The Qlib study checks the same lineage identity before training.
+任一缺口若会改变目标标签、股票排序或研究结论，应停止相关结论升级，保留有限探索结果与真实失败原因。
 
-SHA256 and capture timestamps prove local byte lineage, not historical point-in-time validity or economic alpha. Current fixed-cohort study is retrospective and potentially subject to survivorship bias.
+## 必要验证与恢复边界
 
-## Validation and further upgrades
+- 合成测试：正常及失败采集隔离、最新 COMPLETE、源单位与复权、Parquet 值/血缘、错误 DB 身份拒绝，已在 CI 执行。
+- 下一真实验证：原始响应覆盖与完整交易日比较、重叠采集修订与累计因子对账、Parquet→Qlib 特征值抽查、重复实验一致性。
+- 写操作前确认环境、数据库路径、权限、备份与足够磁盘空间；不要覆盖用户既有数据库或冻结快照。失败时保存运行身份/日志和残余数据范围说明，不能填合成收益。
 
-This change targets repeated Tushare fetches, CSV parsing and source-version ambiguity. Actual runtime performance, disk use, concurrency and correctness on live feeds must be measured before claiming improvements. Do not add another PostgreSQL server, new message queue or second backtest system just for complexity. Only add concurrent-serving projections if a measured need arises.
+具体命令见 [运行手册](RUN-TUSHARE-QLIB.md)；升级标准见 [研究协议](RESEARCH-PROTOCOL.md)。
