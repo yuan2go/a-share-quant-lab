@@ -108,5 +108,26 @@ class MarketStoreTests(unittest.TestCase):
                 self.assertEqual(latest_bars(conn, "600519.SH", start, end)[-1]["close"], 53.0)
 
 
+    def test_refuses_to_modify_non_aql_duckdb_database(self):
+        import duckdb
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "foreign.duckdb"
+            foreign = duckdb.connect(str(path))
+            foreign.execute("CREATE TABLE unrelated_data (x INTEGER)")
+            foreign.close()
+            with self.assertRaisesRegex(SourceError, "not an AQL"):
+                with connect_store(path):
+                    pass
+            check = duckdb.connect(str(path), read_only=True)
+            try:
+                names = {row[0] for row in check.execute(
+                    "SELECT table_name FROM information_schema.tables"
+                ).fetchall()}
+                self.assertIn("unrelated_data", names)
+                self.assertNotIn("captures", names)
+            finally:
+                check.close()
+
+
 if __name__ == "__main__":
     unittest.main()
