@@ -1,0 +1,22 @@
+name: aql_tushare
+version: 0.1.8
+plugin_api_version: 1
+display_name: Tushare 授权行情
+runtime: none
+entry: provider:Provider
+check: provider:availability
+datasets: [daily, adj_factor, financial]
+api_key_env: TUSHARE_TOKEN
+requires_app: '>=0.3.37'
+requires_python: '>=3.11'
+platforms: [any]
+requires: []
+author: yuan2go
+description: |
+  Tushare兼容HTTPS。股票/指数/ETF原始日K、单次事件因子、财务报表。
+  数据保存至TSP独立展示目录，不改写AQL冻结研究快照。
+  分钟及RT批量权限实测403，五档无已验证接口，不声明这些数据集。单股票RT可查，不等于TSP全市场实时能力。
+usage_notes:
+  - 日K成交量手、成交额千元转元；RT股转手、成交额元。
+  - 首次全市场历史同步按交易日批量，私有成功响应缓存24小时，失败不缓存。此展示缓存不是历史修订库。
+  - 股票池和本次采集是当代展示数据，不具有历史PIT资格。

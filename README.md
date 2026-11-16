@@ -2,7 +2,9 @@
 
 **独立的 A 股选股与买卖点研究应用。** 官方 [Qlib](https://github.com/microsoft/qlib) 负责因子、机器学习及研究计算；[TSP](https://github.com/shy3130/tick-stock-panel) 是可选的独立 Web 工作台。本仓库管理 A 股数据与研究协议，不 Fork 两者，也不写入 [MRA](https://github.com/yuan2go/market-regime-alpha) 的运行实例。
 
-**当前结论（2026-11-16）**：已实际完成真实 Tushare → DuckDB → Parquet → 官方 Qlib Binary → Alpha158/LightGBM 的固定样本研究。665个配对日期、19,919个证券日期对中，模型平均 RankIC **-0.00115**，20日动量 **0.01136**，差值 **-0.01251**；整体未改善。详见[实际研究记录与验收边界](docs/WP-AQL-FIRST-REAL-RESEARCH-01-RESULTS.md)。暂不推进买卖点开发；严格 PIT、独立 OOS、扣费收益、TSP 部署仍未证明。
+**当前研究结论**：已实际完成真实 Tushare → DuckDB → Parquet → 官方 Qlib Binary → Alpha158/LightGBM 的固定样本研究。665个配对日期、19,919个证券日期对中，模型平均 RankIC **-0.00115**，20日动量 **0.01136**，差值 **-0.01251**；整体未改善。详见[实际研究记录与验收边界](docs/WP-AQL-FIRST-REAL-RESEARCH-01-RESULTS.md)。暂不推进买卖点开发；严格 PIT、独立 OOS、扣费收益仍未证明。
+
+**本地工作台（2026-11-17）**：按追加授权已启动官方 TSP v0.3.37 独立实例，加载一年全市场日线、财务与板块快照。真实验证三类能力（日线、复权、财务），其余保留权限/覆盖阻断。数据、日志、临时文件、缓存均在外置盘，见[本地验收](docs/TSP-REAL-DATA-20261117.md)。页面可用不升级研究结论。
 
 ## 研究数据与输出
 

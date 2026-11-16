@@ -26,6 +26,10 @@ jobs:
         run: python -m compileall -q src scripts
       - name: Package external TSP page
         run: python scripts/package_tsp_extension.py
+      - name: Package standalone TSP source (code only)
+        run: python scripts/package_tsp_source.py
+      - name: Compile source plugin without importing a TSP runtime
+        run: python -m compileall -q integrations/tsp/tushare_source
       - name: Verify JavaScript extension syntax
         run: node --check integrations/tsp/frontend/extension.mjs
   native-qlib:

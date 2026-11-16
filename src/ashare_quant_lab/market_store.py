@@ -161,7 +161,7 @@ def read_tsp_daily(conn, symbol: str, start: date, end: date) -> list[dict]:
             "ts_code": row["symbol"],
             "trade_date": row["trade_date"].isoformat(),
             "open": row["open"], "high": row["high"], "low": row["low"],
-            "close": row["close"], "vol": row["volume_shares"],
+            "close": row["close"], "vol": row["volume_shares"] / 100.0,  # TSP stores hands (100 shares)
             "amt": row["amount_cny"],
         }
         for row in latest_bars(conn, symbol, start, end)

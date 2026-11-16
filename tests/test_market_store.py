@@ -59,7 +59,9 @@ class MarketStoreTests(unittest.TestCase):
             self.assertEqual(latest_capture_status(db_path)["latest_complete"]["rows"], 2)
             with connect_store(db_path, read_only=True) as conn:
                 raw = read_tsp_daily(conn, "600519.SH", date(2026, 1, 5), date(2026, 1, 6))
-                self.assertEqual(raw[0]["vol"], 10000.0)  # shares
+                self.assertEqual(raw[0]["vol"], 100.0)  # TSP contract: hands, not shares
+                stored = latest_bars(conn, "600519.SH", date(2026, 1, 5), date(2026, 1, 6))
+                self.assertEqual(stored[0]["volume_shares"], 10000.0)
                 self.assertEqual(raw[0]["amt"], 1_000_000.0)  # CNY
                 self.assertEqual(
                     read_tsp_factor_events(conn, "600519.SH", date(2026, 1, 5), date(2026, 1, 6)),
