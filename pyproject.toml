@@ -14,9 +14,9 @@ dependencies = []
 
 [project.optional-dependencies]
 # Research data owner and native Parquet projection
-storage = ["duckdb>=1.2,<2"]
+storage = ["duckdb>=1.2,<2", "pytz>=2024.1"]
 # Full local study environment: Qlib's dump_bin.py uses pandas.read_parquet
-qlib = ["duckdb>=1.2,<2", "pyqlib==0.9.7", "pyarrow>=14,<30", "fire>=0.5"]
+qlib = ["duckdb>=1.2,<2", "pytz>=2024.1", "pyqlib==0.9.7", "pyarrow>=14,<30", "fire>=0.5"]
 
 [project.scripts]
 aql = "ashare_quant_lab.cli:main"
