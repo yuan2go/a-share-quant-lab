@@ -12,7 +12,7 @@ Status: IMPLEMENTED + SYNTHETIC DUCKDB/PARQUET INTEGRATION TESTS. Actual Tushare
 
 ## Capture and read semantics
 
-DuckDB has captures, daily_bars and trade_sessions tables. Each capture records immutable ID, requested scope, started/completed timestamps, source and state (RUNNING, COMPLETE or FAILED). Daily rows retain symbol/date, raw OHLC, shares, CNY amount, cumulative factor and actual retrieval timestamp. Sessions currently use the source SSE trade calendar.
+DuckDB uses an AQL schema-version sentinel. A new market file is initialized only when the path does not already exist; opening an existing DuckDB file without the correct AQL schema identity fails rather than writing into another application's database, including a TSP database. The schema has captures, daily_bars and trade_sessions tables. Each capture records immutable ID, requested scope, started/completed timestamps, source and state (RUNNING, COMPLETE or FAILED). Daily rows retain symbol/date, raw OHLC, shares, CNY amount, cumulative factor and actual retrieval timestamp. Sessions currently use the source SSE trade calendar.
 
 Each requested batch is committed per security and becomes visible to the research query layer only after the whole capture completes. Failed captures are marked FAILED and their unfinished records removed; prior COMPLETE captures remain intact. Re-ingest creates a new capture rather than updating old observations. For each stock and date, queries choose the latest COMPLETE captured version. Incremental updates can cover a shorter date interval without replacing older completed history.
 
