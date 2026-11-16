@@ -1,26 +1,25 @@
-# Current status and qualification gates — 2026-11-16
+# Current evidence and next gates — 2026-11-16
 
-Scope authorized: implement Tushare data integration, Qlib first-selection study and TSP display boundary. A tool-accessible runtime with the user's local TSP/Qlib instance is NOT available, and external outbound DNS in the development sandbox failed. No token was committed to this public repository.
+The source database refactor is implemented and synthetically tested. **No user-specific live Tushare request, local Qlib training run or mounted TSP page has been performed in the current session.**
 
-| Gate | Code status | Actually verified |
+| Area | Code status | Actual verification |
 | --- | --- | --- |
-| Python package and artifact contract | Present | GitHub stdlib tests pass |
-| Tushare client, date and units | Present | Synthetic tests pass; user's live proxy not reachable here |
-| TSP data-source daily/adj-factor | Present | No running TSP, no actual market pages filled |
-| Qlib retrospective data export | Present | Synthetic CSV tests only |
-| Official Qlib CSV-to-binary converter | Wrapper present | Not run on real source data |
-| Alpha158+LightGBM vs momentum | Research runner present | No actual Qlib training or RankIC output |
-| TSP full extension package | Extension + packaging present | No installed/browser-verified extension |
-| Manual GitHub study workflow | Workflow_dispatch only | Not run with GitHub Actions secret |
-| PIT, prospective, economic Alpha | Not qualified | No real execution account evidence |
-| Broker order execution | Not implemented | Not authorized |
+| Independent Python application + optional official Qlib | Present | Package, CLI, CI passed |
+| Tushare client + raw unit conversion | Present | Synthetic tests; live provider UNKNOWN |
+| DuckDB full/failed capture history | Present | Native DuckDB write/read, latest COMPLETE revision and failure rejection in CI |
+| DuckDB to frozen Parquet | Present | Native Parquet value/coverage checks in CI |
+| Official Qlib converter | Parquet supported, manifest SHA and converter lineage check | Not run on actual real-data Qlib Binary |
+| Alpha158 and LightGBM vs simple momentum | Existing research entry | Not trained on user's real dataset; no RankIC/outcome |
+| TSP market gateway | Reads complete DuckDB captures instead of remote provider | Handler tested; not deployed in TSP |
+| TSP result viewer | Existing read-only extension | Packaging/JS syntax only; no browser E2E |
+| Historical PIT/dynamic universe | Not qualified | Current cohort is fixed retrospectively |
+| Live/net profitable orders | Not implemented | Not authorized |
 
-## Next gates
+## Next valuable checks
 
-1. Confirm the actual proxy permissions and selected Tushare endpoints with a secret-backed source check in a networked runtime.
-2. Prove daily price/volume/amount units and discrete vs cumulative adjustment semantics on real corporate-action dates; inspect missing rows and API limits.
-3. Generate a genuine local source snapshot, run official Qlib dump_bin and first Alpha158 + LightGBM vs momentum study. Record original artifacts, sample sizes and negative outcomes. Still label historical frozen cohort as retrospective only.
-4. In the actual TSP host, install the YAML source and read-only extension and verify stock K-line plus the ranking page after an actual research report exists.
-5. Before any trading claims, replace static-cohort selection with qualified historical point-in-time membership, reconcile dividends, constraints, fees, actual order feasibility and run an audited single-authority comparison.
+1. Verify the Tushare source API with actual secret-backed network access and check source coverage/units/permissions.
+2. Capture real historical bars/factors/calendar in DuckDB, freeze a Parquet snapshot with hashes, and run the actual official Qlib conversion + LightGBM/momentum experiment. Preserve failures and original evidence.
+3. Install and locally validate TSP daily/adj_factor data source and historical research page. Confirm displays against the same source snapshot, not just UI presence.
+4. Before investing or optimizing buy/sell signals, establish dynamic historical membership, PIT/label availability, corporate actions, realistic A-share order constraints and single comparable after-cost portfolio performance.
 
-See [runbook](RUN-TUSHARE-QLIB.md). No automatic live trading or GitHub workflow scheduling.
+Do not add another generic DB, front end, agent or strategy engine until a measured bottleneck or observed decision advantage makes it necessary. Future changes should target real-data coverage and a verified economic result rather than feature count.

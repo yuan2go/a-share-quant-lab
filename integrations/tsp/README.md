@@ -1,11 +1,27 @@
-# TSP integration — source code present; host not yet deployed
+# TSP adapter — DuckDB data and a read-only Qlib research view
 
-Our extension uses the TSP v0.3.37 Full Extension Package contract and remains independent of both Qlib's Python environment and TSP's strategy engine.
+The lab does **not** copy or fork Tick Stock Panel, and its Python Qlib process stays outside TSP's web worker.
 
-- Data source: [tushare_aql.yaml](tushare_aql.yaml), supports stock daily OHLCV and discrete-event adjustment factors only. Launch the localhost Tushare proxy in the appropriate network and choose the source in TSP Settings → Data sources. It does not provide realtime, ETF/index or minute data.
-- Research page: full extension package in this directory (extension.yaml, backend/, frontend/). Package with python scripts/package_tsp_extension.py; import in TSP Settings → Import and Backup, restart and refresh.
-- Outputs: after the separate Qlib retrospective ranking study, aql publish-tsp writes the checked result to TSP's existing local data/aql/ directory. The page shows historical ranking and opens the original TSP stock preview, never trading advice.
+## History adapter
 
-The host data-provider and extension have not been installed or tested against a live TSP. All display and actual K-line coverage claims require local end-to-end verification.
+First ingest the authorized source into a completed DuckDB capture, then stop the writer and run:
 
-Upstream: https://github.com/shy3130/tick-stock-panel/blob/v0.3.37/docs/extension-packages.md
+~~~bash
+python -m ashare_quant_lab.tsp_gateway --db-path data/market.duckdb
+~~~
+
+The gateway accepts historical stock daily/adj_factor requests and queries only the latest COMPLETE DuckDB revisions. It does not send HTTP requests to Tushare. Cumulative factor snapshots are converted to TSP per-event ex_factor; raw prices, shares and CNY are retained.
+
+Copy tushare_aql.yaml into TSP data/data_sources, reload and test it in Settings -> Data sources, then explicitly select both historical datasets and run a small TSP history sync. TSP owns its own display Parquet/DuckDB. The lab's DuckDB remains single-writer: stop gateway when another process ingests source history. Do not expose the unauthenticated gateway to the public Internet.
+
+## Study page
+
+~~~bash
+python scripts/package_tsp_extension.py
+~~~
+
+Import the trusted ZIP through TSP Settings -> Import and Backup, restart, and load the Qlib research page. Publish a real study result to the existing TSP data directory using aql publish-tsp. It displays research cutoff, model rank scores and status and invokes native TSP stock preview; it does not issue investment or brokerage orders.
+
+Realtime, financial statements, minute data, ETFs, index bars and historical PIT membership are not supplied by this adapter. Actual TSP deployment has not been verified.
+
+Upstream extension contract: https://github.com/shy3130/tick-stock-panel/blob/v0.3.37/docs/extension-packages.md

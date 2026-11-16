@@ -1,4 +1,4 @@
-# Environments and local settings
+# Python / OS / IDE
 .venv/
 venv/
 .env
@@ -14,15 +14,20 @@ htmlcov/
 *.egg-info/
 build/
 dist/
-# Research data, results and credentials are local by default
+.DS_Store
+.idea/
+.vscode/
+
+# Raw licensed market data, local databases and immutable study artifacts
 data/
 artifacts/
 outputs/
 reports/generated/
+*.duckdb
+*.duckdb.wal
+*.parquet
+*.csv
 *.sqlite
 *.sqlite3
 *.db
 *.log
-.DS_Store
-.idea/
-.vscode/
