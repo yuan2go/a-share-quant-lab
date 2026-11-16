@@ -16,7 +16,12 @@ from typing import Iterator
 from .tushare_source import SourceError, validate_symbol
 
 
+SCHEMA_VERSION = 1
 SCHEMA = """
+CREATE TABLE IF NOT EXISTS aql_schema_meta (
+    schema_version INTEGER PRIMARY KEY,
+    created_at TIMESTAMPTZ NOT NULL
+);
 CREATE TABLE IF NOT EXISTS captures (
     capture_id VARCHAR PRIMARY KEY,
     started_at TIMESTAMPTZ NOT NULL,
@@ -69,13 +74,28 @@ def connect_store(path: Path, *, read_only: bool = False) -> Iterator[object]:
         raise SourceError("market database not found; ingest source data before reading")
     if not read_only:
         db_file.parent.mkdir(parents=True, exist_ok=True)
+    existed = db_file.is_file()
     try:
         conn = duckdb.connect(str(db_file), read_only=read_only)
     except duckdb.Error as exc:
         raise SourceError("market database unavailable or locked by another process") from exc
     try:
-        if not read_only:
+        if not existed and not read_only:
             conn.execute(SCHEMA)
+            conn.execute(
+                "INSERT INTO aql_schema_meta VALUES (?, now())",
+                [SCHEMA_VERSION],
+            )
+        else:
+            # NEVER attach or initialize a different DuckDB file, e.g. TSP's DB.
+            try:
+                row = conn.execute(
+                    "SELECT schema_version FROM aql_schema_meta"
+                ).fetchall()
+            except duckdb.Error as exc:
+                raise SourceError("existing database is not an AQL market store") from exc
+            if len(row) != 1 or row[0][0] != SCHEMA_VERSION:
+                raise SourceError("market database schema is missing or incompatible")
         yield conn
     finally:
         conn.close()
