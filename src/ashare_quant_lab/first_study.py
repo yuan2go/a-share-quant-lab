@@ -95,6 +95,12 @@ def run_first_qlib_study(
         raise FileExistsError("experiment output exists; refusing overwrite")
     if not provider_uri.is_dir():
         raise StudyError("Qlib provider path does not exist")
+    lineage_path = provider_uri / "aql_source_manifest.json"
+    if not lineage_path.is_file():
+        raise StudyError("Qlib provider has no source lineage record; run official dump wrapper")
+    lineage = json.loads(lineage_path.read_text(encoding="utf-8"))
+    if lineage.get("source_manifest_sha256") != snapshot_id:
+        raise StudyError("Qlib provider and source snapshot IDs disagree")
     try:
         import pandas as pd
         import qlib
@@ -184,7 +190,10 @@ def run_first_qlib_study(
             "schema_version": 1, "run_id": run_id, "created_at": created.isoformat(),
             "signal_cutoff": cutoff.isoformat(), "market": "CN-A",
             "forecast_horizon_days": 10,
-            "model_id": f"qlib-lightgbm-alpha158-v1-{hashlib.sha256(config_bytes).hexdigest()[:12]}",
+            "model_id": (
+                f"qlib-{qlib.__version__}-lightgbm-alpha158-v1-"
+                f"{hashlib.sha256(config_bytes + Path(__file__).read_bytes()).hexdigest()[:12]}"
+            ),
             "universe_id": hashlib.sha256(",".join(manifest["universe"]).encode()).hexdigest(),
             "data_snapshot_id": snapshot_id,
             "predictions": predictions,
