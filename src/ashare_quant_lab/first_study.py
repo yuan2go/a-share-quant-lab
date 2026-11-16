@@ -132,7 +132,7 @@ def run_first_qlib_study(
         # holding; prediction label is not an executable fill simulation.
         label=(["Ref($close, -11)/Ref($close, -1) - 1"], ["LABEL0"]),
     )
-    segments = {k: tuple(v) for k, v in config.items() if k in ("train", "valid", "test")}
+    segments = {k: tuple(str(day) for day in v) for k, v in config.items() if k in ("train", "valid", "test")}
     dataset = DatasetH(handler=handler, segments=segments)
     model = LGBModel(
         loss="mse",

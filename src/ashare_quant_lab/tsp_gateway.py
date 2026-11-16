@@ -8,7 +8,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from .tushare_source import SourceError, TushareClient, daily_rows, parse_day, tsp_factor_events, validate_symbol
@@ -29,14 +29,20 @@ def handle_request(source: TushareClient, path: str, body: object) -> dict:
     if body.get("asset_type") not in (None, "stock"):
         # Explicitly unsupported; do not silently return stock data as ETF/index.
         raise ValueError("only asset_type=stock is supported")
-    if not body.get("start_time") or not body.get("end_time"):
-        raise ValueError("start_time and end_time required; refuse implicit partial history")
-    start, end = parse_day(body["start_time"]), parse_day(body["end_time"])
-    if start > end or (end - start).days > 5500:
-        raise ValueError("invalid range or >5500 days; split backfill windows")
+    # TSP may request an unbounded first backfill (start_time/end_time omitted).
+    # Use the full A-share history instead of silently returning only recent rows.
+    start = parse_day(body["start_time"]) if body.get("start_time") else date(1990, 1, 1)
+    cn_today = datetime.now(timezone(timedelta(hours=8))).date()
+    end = parse_day(body["end_time"]) if body.get("end_time") else cn_today
+    if start > end or (end - start).days > 15000:
+        raise ValueError("invalid date range")
     rows = []
     for symbol in symbols:
-        rows.extend(daily_rows(source, symbol, start, end) if path == "/daily" else tsp_factor_events(source, symbol, start, end))
+        rows.extend(
+            daily_rows(source, symbol, start, end)
+            if path == "/daily"
+            else tsp_factor_events(source, symbol, start, end, allow_initial_baseline=start == date(1990, 1, 1))
+        )
     return {"data": rows, "source": "tushare-http", "asset_type": "stock"}
 
 

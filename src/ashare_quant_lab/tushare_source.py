@@ -121,11 +121,25 @@ class TushareClient:
         return rows
 
 
+def query_partitioned(source: TushareClient, api_name: str, symbol: str, start: date, end: date) -> list[dict[str, Any]]:
+    """Split multi-decade backfills so a 6000-row Tushare response is not truncated."""
+    rows = []
+    cursor = start
+    while cursor <= end:
+        upper = min(cursor + timedelta(days=3500), end)
+        rows.extend(source.query(
+            api_name, ts_code=symbol,
+            start_date=cursor.strftime("%Y%m%d"), end_date=upper.strftime("%Y%m%d"),
+        ))
+        cursor = upper + timedelta(days=1)
+    return rows
+
+
 def daily_rows(source: TushareClient, symbol: str, start: date, end: date) -> list[dict[str, Any]]:
     validate_symbol(symbol)
     if start > end:
         raise ValueError("start after end")
-    raw = source.query("daily", ts_code=symbol, start_date=start.strftime("%Y%m%d"), end_date=end.strftime("%Y%m%d"))
+    raw = query_partitioned(source, "daily", symbol, start, end)
     result: dict[str, dict[str, Any]] = {}
     for row in raw:
         if row.get("ts_code") != symbol:
@@ -151,7 +165,7 @@ def daily_rows(source: TushareClient, symbol: str, start: date, end: date) -> li
 
 def factor_snapshots(source: TushareClient, symbol: str, start: date, end: date) -> dict[str, float]:
     validate_symbol(symbol)
-    raw = source.query("adj_factor", ts_code=symbol, start_date=start.strftime("%Y%m%d"), end_date=end.strftime("%Y%m%d"))
+    raw = query_partitioned(source, "adj_factor", symbol, start, end)
     result: dict[str, float] = {}
     for row in raw:
         if row.get("ts_code") != symbol:
@@ -166,7 +180,10 @@ def factor_snapshots(source: TushareClient, symbol: str, start: date, end: date)
     return result
 
 
-def tsp_factor_events(source: TushareClient, symbol: str, start: date, end: date) -> list[dict[str, Any]]:
+def tsp_factor_events(
+    source: TushareClient, symbol: str, start: date, end: date,
+    *, allow_initial_baseline: bool = False,
+) -> list[dict[str, Any]]:
     """Convert cumulative series to discrete event ratio.
 
     Always acquire a date before the requested range to avoid a false ex-date.
@@ -181,6 +198,9 @@ def tsp_factor_events(source: TushareClient, symbol: str, start: date, end: date
             prior = current
             continue
         if prior is None:
+            if allow_initial_baseline:
+                prior = current
+                continue
             raise SourceError("no pre-window factor baseline; backfill an earlier snapshot")
         ratio = current / prior
         if not math.isclose(ratio, 1.0, rel_tol=1e-8, abs_tol=1e-9):
