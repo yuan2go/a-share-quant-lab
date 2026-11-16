@@ -1,21 +1,11 @@
-# TSP integration plan (NOT IMPLEMENTED)
+# TSP integration — source code present; host not yet deployed
 
-This directory marks the intended boundary; it is **not** a ready-to-install TSP extension.
+Our extension uses the TSP v0.3.37 Full Extension Package contract and remains independent of both Qlib's Python environment and TSP's strategy engine.
 
-Selected host: https://github.com/shy3130/tick-stock-panel
-Initial upstream reference: v0.3.37, not checked against the user's local installation.
+- Data source: [tushare_aql.yaml](tushare_aql.yaml), supports stock daily OHLCV and discrete-event adjustment factors only. Launch the localhost Tushare proxy in the appropriate network and choose the source in TSP Settings → Data sources. It does not provide realtime, ETF/index or minute data.
+- Research page: full extension package in this directory (extension.yaml, backend/, frontend/). Package with python scripts/package_tsp_extension.py; import in TSP Settings → Import and Backup, restart and refresh.
+- Outputs: after the separate Qlib retrospective ranking study, aql publish-tsp writes the checked result to TSP's existing local data/aql/ directory. The page shows historical ranking and opens the original TSP stock preview, never trading advice.
 
-Prefer the documented extension package / backend router / Page Pack SDK APIs:
-- https://github.com/shy3130/tick-stock-panel/blob/main/docs/extension-packages.md
-- https://github.com/shy3130/tick-stock-panel/blob/main/docs/page-sdk.md
-- https://github.com/shy3130/tick-stock-panel/blob/main/docs/secondary-development.md
+The host data-provider and extension have not been installed or tested against a live TSP. All display and actual K-line coverage claims require local end-to-end verification.
 
-Intended split:
-- Qlib runs as a separate research worker with independent dependencies/data snapshots. Do not put training into the TSP web process.
-- A read-only API loads **validated** immutable prediction artifacts, returns explicit staleness/coverage/unverified status, and never implies a score is a buy recommendation.
-- A TSP page lists experimental ranking results; stock row click reuses the host's stock-preview capability. No duplicate K-line chart implementation.
-- Exact signal cutoff and published time must remain visible. No browser route is allowed to trigger real orders or write MRA state.
-
-TSP supports extensions but its documented core selection-scoring and backtest engines are **not** generally replaceable through all extension APIs. Do not claim that an external Qlib score can automatically be injected into them; research display integration comes first.
-
-Implementation requires checking the actual running TSP source/version and the extension API, building and testing a package, and verifying a real Qlib result end-to-end. No such test has yet been run.
+Upstream: https://github.com/shy3130/tick-stock-panel/blob/v0.3.37/docs/extension-packages.md
