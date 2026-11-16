@@ -1,24 +1,13 @@
-# Collaboration rules — A-Share Quant Lab
+# A-Share Quant Lab collaboration rules
 
-Read README.md, docs/ARCHITECTURE.md and docs/RESEARCH-PROTOCOL.md before changing research behavior.
+Before changes, read README.md, docs/ARCHITECTURE.md, docs/RESEARCH-PROTOCOL.md and docs/ROADMAP.md. Confirm code and real-data runtime separately.
 
-## Purpose and boundary
-- Optimize verifiable, risk-adjusted **net trading value**, not model count, feature count, CI size or backtest headline numbers.
-- Use Microsoft Qlib as the research dependency and TSP as the optional workbench host. Do not vendor or casually fork their engines. Reuse actual supported extension surfaces; inspect installed versions and code before integrating.
-- This repository does not authorize automated live trading, changing an existing MRA runtime/database, purchasing data or publishing credentials.
-
-## Evidence discipline
-- Explicitly separate: implemented code, local smoke test, source evidence, point-in-time (PIT), held-out validation, prospective observation, simulated trading and actual execution.
-- Historical universe/status, source timestamps, adjustment/corporate actions, transaction costs and A-share security-specific trading rules are required for reliable economic conclusions.
-- Model scores are arbitrary numerical rankings until calibrated; never label them as probabilities or expected returns by default.
-- Respect T-close signal generation versus next feasible execution. Rejected or unfilled orders must not vanish from economic accounting.
-- Do not relabel repeatedly inspected histories as unseen OOS. Report negative findings and missing denominators.
-
-## Engineering work
-- First inspect existing code/docs and explain why an added capability is needed. Avoid parallel research engines, duplicate backtests and speculative abstractions.
-- Choose necessary tests for affected behavior; do not manufacture passing evidence. Keep large/raw data, exports, tokens, account details and Qlib data files out of Git.
-- Source code, README claims and successful tests do not prove a strategy profitable or the local Qlib/TSP runtime integrated.
-- For the initial project, prioritize a reproducible, real-data Qlib selection experiment and one comparable baseline before developing more UI or research agents.
-
-## Research adoption
-Use a primary economic metric, an explicit comparator, time-ordered validation, costs and realistic order rules; record rejected assumptions. "No trade" and "not adopted" are legitimate outcomes.
+- Purpose: A-share stock selection, buy/sell timing research, true after-cost decision value, with "no trade" as a valid answer. Avoid needless feature expansion and duplicate engines.
+- Qlib: external Python dependency for real data science. TSP: independent visualization/workbench host. No Fork, vendoring or silent replacement of their core engines. MRA continues independently.
+- Credentials: never commit tokens, secret-bearing MCP URLs, paid raw data or real outputs to Git. Local environment or repository Actions secrets only. The public repo must not expose the user's credential.
+- The current study uses a retrospectively fixed cohort and ten-day adjusted-price ranking label; that is not proof of PIT, a dynamic historical universe, unobserved OOS or net trading profitability.
+- A valid model score is not an estimated win probability. RankIC, predictive accuracy, trade win rate and account net returns have separate denominators and qualification.
+- Tushare cumulative adjustment factors must NOT be written directly to TSP discrete-event ex_factor; normalize volume/amount units, reject source gaps and missing previous snapshots.
+- Preserve signal cutoffs, source captured/public times, date/stock coverage, label maturity, actual feasible execution assumptions and all failures. No fabricated live prices or backtest outcomes.
+- Before deploying as investment guidance, reconcile historical membership, corporate actions, A-share T+1/limit/ST constraints, fills/costs and genuine prospective or temporally protected results.
+- Real broker orders and unattended trading are NOT authorized.
