@@ -1,25 +1,37 @@
-# Current evidence and next gates — 2026-11-16
+# 当前状态与下一工作包（唯一执行入口）
 
-The source database refactor is implemented and synthetically tested. **No user-specific live Tushare request, local Qlib training run or mounted TSP page has been performed in the current session.**
+**核查基线：2026-11-16，main cbef55c388039b8eedd71da0b90ea2f58973edd9；GitHub CI 43880211924 成功。** 此基线表示已查阅的代码/合成数据检查，不是新的真实数据运行。当前开发范围为 a-share-quant-lab，不含 MRA 或用户已安装的 TSP/Qlib 进程。
 
-| Area | Code status | Actual verification |
+## 实际状态
+
+| 能力 | 状态 | 有效证据/缺口 |
 | --- | --- | --- |
-| Independent Python application + optional official Qlib | Present | Package, CLI, CI passed |
-| Tushare client + raw unit conversion | Present | Synthetic tests; live provider UNKNOWN |
-| DuckDB full/failed capture history | Present | Native DuckDB write/read, latest COMPLETE revision and failure rejection in CI |
-| DuckDB to frozen Parquet | Present | Native Parquet value/coverage checks in CI |
-| Official Qlib converter | Parquet supported, manifest SHA and converter lineage check | Not run on actual real-data Qlib Binary |
-| Alpha158 and LightGBM vs simple momentum | Existing research entry | Not trained on user's real dataset; no RankIC/outcome |
-| TSP market gateway | Reads complete DuckDB captures instead of remote provider | Handler tested; not deployed in TSP |
-| TSP result viewer | Existing read-only extension | Packaging/JS syntax only; no browser E2E |
-| Historical PIT/dynamic universe | Not qualified | Current cohort is fixed retrospectively |
-| Live/net profitable orders | Not implemented | Not authorized |
+| Python 包与 CLI | 工程完成 | GitHub CI 安装、测试、CLI PASS |
+| Tushare 源与单位转换 | 合成验证 | 未证明当前网关对 trade_cal、daily、adj_factor 实际可访问 |
+| DuckDB 捕获与失败隔离 | 合成验证 | 完整/失败批次、重采、版本读取在 CI 中 PASS |
+| Parquet 快照与源哈希 | 合成验证 | 文件值和 manifest 校验通过，真实复权修订未核 |
+| 官方 Qlib Binary 转换 | 代码存在 | 未完成真实 Parquet→Qlib 原生数据对账 |
+| Alpha158/LightGBM 与动量 | 代码存在 | 尚无真实模型训练、预测/标签对齐与 RankIC 报告 |
+| TSP 历史 K线与研究扩展 | 代码/打包存在 | 未在用户本机安装/浏览器核验 |
+| PIT、独立 OOS、经济 Alpha | 未证明 | 固定回顾性股票池、历史公开时点及账户链不齐 |
+| 自动交易 | 未授权/未实现 | 不开展 |
 
-## Next valuable checks
+## 下一项唯一优先工作：WP-AQL-FIRST-REAL-RESEARCH-01
 
-1. Verify the Tushare source API with actual secret-backed network access and check source coverage/units/permissions.
-2. Capture real historical bars/factors/calendar in DuckDB, freeze a Parquet snapshot with hashes, and run the actual official Qlib conversion + LightGBM/momentum experiment. Preserve failures and original evidence.
-3. Install and locally validate TSP daily/adj_factor data source and historical research page. Confirm displays against the same source snapshot, not just UI presence.
-4. Before investing or optimizing buy/sell signals, establish dynamic historical membership, PIT/label availability, corporate actions, realistic A-share order constraints and single comparable after-cost portfolio performance.
+**目标**：用可授权的真实市场数据，闭合「Tushare → DuckDB → Parquet → 官方 Qlib Binary → Alpha158/LightGBM → 与20日动量配对 RankIC → 可复现证据」；并修复会使该链路结果失真的已发现/实际触发问题。不要扩成全市场、更多模型、买卖点或 TSP UI 重写。
 
-Do not add another generic DB, front end, agent or strategy engine until a measured bottleneck or observed decision advantage makes it necessary. Future changes should target real-data coverage and a verified economic result rather than feature count.
+**实现前要核查的高风险边界**：
+
+1. 数据库按证券/日期取最新完整采集，跨批次累计因子可能不一致；检查复权链和标签正确性。
+2. Tushare 实际返回、限频、交易日历与缺失记录（停牌/未上市/源缺失）之间的区别；检查历史数据与实际可得时间。
+3. Qlib 的版本/官方转换器可运行性、MultiIndex 级别顺序、预测/动量/标签配对、11交易日标签成熟与时序隔离。
+4. 当前固定样本及既往历史查看意味着只能做探索性回顾分析；报告必须声明未通过严格 PIT/真实未见 OOS、未提供扣费账户收益。
+5. 令牌、收费数据、真实研究产物与公开 Actions/日志间的授权和保密边界。
+
+**必要验收结果**：源验证记录与覆盖分母、经过核对的原生 Qlib 数据/模型/排名结果、同口径基线与配对指标、可追溯的快照/版本/实验身份、必要原生链路测试和未完成/负面项；如果环境/权限阻断，仍交付准确诊断与能够复跑的工程部分，不能虚构结果。
+
+**本轮不做**：新数据库/消息队列、独立训练或回测框架、TSP 主界面改造、RD-Agent、自动调参、投资建议、实盘交易。当前运行手册见 [RUN-TUSHARE-QLIB.md](RUN-TUSHARE-QLIB.md)，具体研究合同见 [RESEARCH-PROTOCOL.md](RESEARCH-PROTOCOL.md)。
+
+## 后继决策
+
+真实配对结果可信之后，先决定是否存在足够的预测信息值得继续，再验证统一可成交规则与费用后经济价值；只有这些成立，才优先开发买卖点与日常研究页面。结果为零或负值也可以关闭假设，不自动扩展工作。

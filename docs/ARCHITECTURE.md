@@ -1,44 +1,42 @@
-# Active architecture — independent Qlib research application
+# 现行系统架构与职责
 
-The earlier user-approved design remains the authority: develop an independent Python application, use official Qlib as a dependency, and let TSP supply existing pages/stock charts. No new repository, no Qlib/TSP fork, no MRA migration.
+**现行设计**：独立 Python 研究应用依赖官方 Qlib；TSP 作为可选的独立页面宿主；MRA 不迁移、不共享运行数据库。没有证据要求把 Qlib 改成远程服务、Fork Qlib、重写 TSP 或新增 PostgreSQL/Kafka。
 
-## Focused adjustment
-
-| Component | Previous | Current |
-| --- | --- | --- |
-| Historical data | Tushare -> direct CSV plus TSP gateway making separate remote calls | Tushare -> DuckDB complete/versioned capture, TSP read-only from local DB |
-| Research data transfer | CSV intermediate | Immutable compressed Parquet with manifest and hashes |
-| Qlib format | Official dump_bin | Still official dump_bin with Parquet suffix; same model engine |
-| Models | Alpha158 LightGBM vs momentum | Research hypothesis unchanged; snapshot-to-binary identity verified |
-| UI | Independent TSP extension | Unchanged; TSP itself stores its own rendering cache |
-| Execution / MRA | Out of scope | Unchanged; no broker and no MRA database changes |
+## 数据及调用路径
 
 ~~~text
-User-licensed Tushare source
-     |
-     v
-Local DuckDB source captures (one writer)
-     |---- TSP historical source HTTP reader --> TSP native pages
-     |
-     v
-Frozen per-stock Parquet (capture IDs + file hashes)
-     |
-     v
-Official Qlib binary converter
-     |
-     v
-Qlib feature/model/research workflow --> tested ranking diagnostics
-     |
-     v
-TSP separate read-only Qlib research extension
+Tushare兼容HTTP（受权私有令牌）
+    ↓
+DuckDB：本项目采集批次（原价、累计因子、交易日历）
+    ├─ /daily、/adj_factor 只读网关 → TSP 自身行情缓存及K线
+    └─ 完整批次选择 → 冻结证券级 Parquet + manifest
+                                      ↓
+                                官方 Qlib dump_bin.py
+                                      ↓
+                              Qlib Binary / Alpha158
+                                      ↓
+                              LightGBM 与动量对照
+                                      ↓
+                       版本化排名报告（目前仅研究）
+                                      ↓
+                              TSP 只读扩展页面
 ~~~
 
-## Boundaries and limitations
+| Owner | 责任 | 不负责 |
+| --- | --- | --- |
+| AQL Market | 采集、数据版本、单位转换、来源/快照血缘 | 证明历史 PIT、推断未取得的公司行为 |
+| Qlib | 因子、模型拟合、预测、研究对照 | 自动保证交易可成交与净收益 |
+| AQL Research | 研究问题、标签、股票池资格、排名比较、独立买卖点验证（后续） | 替代 Qlib 内核或生成未验证交易承诺 |
+| TSP | 页面、K线、个股详情、读取已发布研究结果 | 第二套研究数据权威或 Qlib 训练线程 |
+| MRA | 既有独立研究、模拟及人工决策能力 | 本阶段自动接管 AQL 数据或交易 |
 
-There is no second independent ML framework, stock-trading execution engine, broker integration, market-wide real-time feed, Java/React rewrite, Kafka queue or default PostgreSQL server. The existing flat Python source package is sufficient; add deeper selection/timing modules only when research actually requires them.
+目前实现的是本地 DuckDB/Parquet 及调用包装，TSP 显示扩展；**没有访问用户正在运行的 TSP 或实际 Qlib 环境**。Qlib 和 TSP 都没有复制进本仓库。扩展页面存在不代表行情已同步。
 
-Current GitHub CI checks database/Parquet native read/write, source normalization, failure isolation, schema/lineage and extension syntax on synthetic records. Real Tushare availability, actual Qlib LightGBM metrics and TSP UI rendering are NOT yet verified.
+## 重要交界
 
-The Qlib study uses a ten-trading-day adjusted-price label, not a fillable order. It remains fixed-cohort retrospective and has no historical dynamic/PIT certification or real after-cost account results. Future net Alpha comparison needs one audited execution and cost authority.
+- **源记录与研究事实不同**：当前最新完整采集按股票/日期择取，存在不同修订的累计复权因子被拼接的潜在风险，首次真实实验必须验证；来源采集时间不是历史公开时间。
+- **模型评分与交易决策不同**：首轮是历史固定样本的10交易日相对收益排序，不是可成交买入/卖出，且未扣费。持仓、订单、费用和实际成交必须由单一、经验证的交易评价链处理。
+- **离线研究与页面不同**：Qlib 训练在独立环境执行，TSP 只读取研究产物。TSP 仍有自己的回测，不能在缺少对齐证明时直接比较两套回测净值。
+- **单机并发约束**：当前 DuckDB 路径不能跨进程同时写入/读取服务，运行 TSP 只读网关时应停止独立写入，除非明确完成新并发机制的验证。
 
-See STORE-CONTRACT.md, RESEARCH-PROTOCOL.md and RUN-TUSHARE-QLIB.md.
+不默认进行架构迁移。只有真实数据覆盖、性能或执行差异形成证据后，才评估调整模块或服务边界。

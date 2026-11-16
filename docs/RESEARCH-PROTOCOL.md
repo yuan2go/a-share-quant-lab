@@ -1,45 +1,41 @@
-# Initial research protocol — hypotheses, not profitable strategies
+# A股选股研究协议：首轮固定样本 → 后续交易价值
 
-Status: RESEARCH PROPOSAL. No historical full-market replay, prospective validation or economic improvement is claimed.
+**状态：首轮研究代码已写，真实数据/模型结果未执行验证。** 本文件区分本次明确实验和未来需要的新实验；不要把远期规则当作当前已经实现。
 
-## Decision problem
+## 要回答的问题
 
-Can a Qlib-based model improve **net A-share selection** relative to a transparent, same-information baseline? If so, does independent entry/exit timing improve actual net portfolio decisions rather than just model IC or single-trade win rate?
+Qlib Alpha158 + LightGBM 能否在**相同样本和信息**上，相对简单20日动量提供增量横截面收益排序信息？只有预测贡献得到真实证据，才进入买点、卖点和费用后账户检验。
 
-## Initial controlled study
+### 首轮冻结配置（实际代码/配置）
 
-- Market: Shanghai/Shenzhen A-shares with a point-in-time eligible universe including later-delisted securities. Missing membership/status/adjustment history must be reported and may restrict valid study scope.
-- Data: daily bars and trading calendar, original execution prices, declared adjusted/total-return series, suspension/limit states, corporate actions, source coverage and revision/time identity.
-- Information cutoff: signals formed after T trading-day close using inputs available by that publication point. No same-close fill. Feasible-order baseline: next eligible session, with an explicitly fixed pricing/execution convention chosen before running. An unfilled order is not a filled trade.
-- Primary label hypothesis: ten-trading-day relative ranking of forward tradable-period returns. Predefined secondary horizons: 5 and 20 trading days. Align actual label price basis with chosen entry/exit and adjustments; do not use Qlib's sample default label unchanged.
-- Transparent selection baseline: preselected 20-day return ranking. ML candidate: Qlib Alpha158 + LightGBM (initial candidate only, not presupposed winner).
-- Training cadence: choose and freeze a feasible time-ordered retraining schedule; daily scoring does not imply daily fitting.
-- Initial combination: weekly baseline rebalance with daily *observation* of exit eligibility. A daily observation does not imply an executed trade.
-
-## Incremental experiments
-
-| Identity | Change from comparator | Question |
+| 项目 | 当前设定 | 资格说明 |
 | --- | --- | --- |
-| A | Simple selection + fixed common entry/exit | Does the baseline work economically? |
-| B | Replace selection only with ML ranking | Does ML add prediction **and net trading** information? |
-| C1/C2 | B plus separate trend/breakout entry rules | Does an entry rule improve net returns beyond exposure reduction? |
-| D1/D2 | B plus separate trend/model-deterioration exits | Is exit timing independently useful? |
-| E | Predeclared combination, only after separate evidence | Does combined net value persist? |
+| 股票池 | configs/first-study-cohort.txt，固定30只沪深A股 | 当代固定样本，可能存在幸存者与事后选择偏差 |
+| 来源 | Tushare 兼容 HTTP → DuckDB → Parquet → Qlib Binary | 本地回顾性快照，非历史严格 PIT |
+| 数据范围 | 2019-01-02 至 2026-10-30（工作流默认请求） | 截止日期和实际覆盖要逐批核实 |
+| 训练 | 2019-01-02—2022-12-09 | 不允许未来标签进入拟合 |
+| 验证 | 2023-01-03—2023-12-08 | 模型早停/选择；无独立经济结论 |
+| 测试 | 2024-01-03—2026-09-30 | 时间上在后，但不是自然前瞻或真正未反复查看的样本 |
+| 标签 | Ref($close,-11)/Ref($close,-1)-1 | 在T收盘后计算特征，T+1→T+11**调整后收盘**10期收益；不是实际成交 |
+| 基线 | T时点20日动量排序 | 与模型使用相同股票/日期标签交集 |
+| 首轮指标 | 每日截面 Spearman RankIC、有效日期和证券对数 | **仅预测诊断**，无成交/费用/净值 |
 
-Initial 20-day MA/20-day high, or other conditions, are **research hypotheses**, not optimized truths. Before conducting a formal comparative experiment, freeze each signal definition, thresholds, data cutoffs, eligible universe, portfolio and execution conditions.
+当前代码的训练/验证/测试日期有时序隔离检查，但并未证明历史发行/公告可用时间和因子跨版本一致。5日、20日周期为**以后预先声明的研究方向**，不在当前首轮中挑最高成绩重新定义标准。
 
-## Required controls
+## 首轮真实研究的关键检查
 
-- Same-symbol/date/market membership and equal information availability for paired arms, including unavailable data and missed fills.
-- A-share T+1 sell restrictions, relevant board-/security-/period-specific price limits, suspensions, lot sizes, tick sizes, minimum commissions, sell-side stamp duty, fees, spread, slippage, capacity, cash and dividends.
-- Chronological train/validation/test segments with appropriate separation for forward labels; no future features, train/test leakage, survivorship bias or ex-post regime selection. Historical periods repeatedly inspected are not fresh holdouts.
-- Compare identical funds, starting date, capital and fees. Report period, sample/decision/fill denominators, turnover, gross/net return, return versus buy-and-hold or relevant benchmark, max drawdown, exposure, costs and rejected orders. Report IC separately as diagnostic.
-- Avoid cherry-picking the best horizon/parameter from the same OOS set. Record all tested candidates, failures and negative results.
+Codex 运行前必须核对：源响应/因子单位、行情覆盖；Qlib 官方版本与 Parquet 转换 API；训练数据中标签是否已成熟、训练/验证/测试隔离；Qlib 模型评分、动量及真实标签的**MultiIndex 层级顺序与键对齐**（只重命名索引不等于正确重排）；横截面分母、缺失与重叠样本；研究产物的实际生成时刻与**假定历史信号截止**的区别。
 
-## Acceptance and stopping
+必须在**相同日期和证券对**上计算两个排序指标，并报告原始交集、有效分母、排除原因、各年度或时间段、阴性结果。观察到 RankIC 差异不直接证明统计显著性；重叠的10日目标不可当作独立实验重复计数。
 
-Engineering completion means reproducible data transformations and reports, **not** stable alpha. Prediction usefulness means repeatable held-out ranking signal; trading usefulness requires credible after-cost portfolio improvement versus fixed baselines. Prospective observation comes after historical assessment; live trading requires separately confirmed authorization and operational controls.
+### 首轮可接受结果
 
-If data provenance, executable price basis or fundamental corporate-action accounting is untrustworthy, stop promotion of *affected economic claims* rather than inventing backtest returns. Narrow exploratory analysis is acceptable if clearly labeled.
+- **工程结果**：真实行情经 DuckDB/Parquet/官方 Qlib 转换可追溯，运行可重复；模型成功训练、推理、计算与基线**配对**的 RankIC 报告，原始配置/版本/快照/关键日志清楚。
+- **探索性结论**：只能判断该固定样本/当前历史数据下是否存在排序信息；不把“时间先后测试”直接标成严格 PIT OOS。
+- **失败同样交付**：如果源权限、复权链、Qlib API、缺失特征或标签成熟度阻断，记录具体未满足条件、受影响范围和可复现步骤；不得采用假源替代真实成果。
 
-"No trade", "unproven" and "do not adopt" are first-class study outcomes.
+## 后续正式交易研究（本轮不实现）
+
+在历史动态证券池、信息可得时钟和公司行为核实后，固定信号和执行价格，比较简单规则、ML选股及独立买卖点；计算费用前后净收益、最大回撤、换手、现金/暴露、实际无法成交/未完成订单，使用相同资本、规则及基线，遵守证券与历史期间的T+1、涨跌限制等。只有经过独立样本外或自然前瞻和统一执行对照，才谈可采用的交易价值。
+
+如果模型评分改善却未改变真实持仓或扣费账户，先检查从预测到决策与执行的传导，而不是制造更多模型。允许 NO_TRADE、NOT_IDENTIFIED、DO_NOT_ADOPT。

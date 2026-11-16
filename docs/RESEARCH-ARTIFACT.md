@@ -1,43 +1,44 @@
-# Prediction artifact contract — V1
+# 预测产物合同 V1：结构验证，不是投资资格
 
-Status: IMPLEMENTED STRUCTURE ONLY. Validating JSON does **not** verify historical PIT availability, that a Qlib model ran, or that its scores are predictive.
+当前实现：src/ashare_quant_lab/contracts.py 与 artifacts.py；TSP 扩展消费由 tsp_publish.py 和 integrations/tsp 提供。
 
-A producer (future Qlib experiment adapter) publishes an immutable, versioned prediction batch. A TSP reader may only display it as research, not as trade authorization.
+## 输入结构
 
-## Required JSON fields
-
-| Key | Semantics |
+| 字段 | V1 含义 |
 | --- | --- |
-| schema_version | Integer 1 |
-| run_id | Immutable unique experiment/result identity supplied by producer |
-| created_at | Result creation timestamp, offset-aware ISO-8601 |
-| signal_cutoff | Latest information cutoff used to form the signal, offset-aware ISO-8601 |
-| market | Fixed value CN-A |
-| forecast_horizon_days | Positive integer number of trading days, not calendar days |
-| model_id | Exact model/config identity (name alone is insufficient for future adoption) |
-| universe_id | Versioned dynamic eligible-universe identity |
-| data_snapshot_id | Version/hash reference for the input dataset, which still requires independent provenance checks |
-| predictions | Array of unique { symbol, score }; symbols in NNNNNN.SH or NNNNNN.SZ format; finite numeric scores. Empty means no output candidates and is valid. |
+| schema_version | 整数1 |
+| run_id | 一次研究产物的唯一标识（由生产者提供） |
+| created_at | **实际生成**时间，带时区的 ISO 8601 |
+| signal_cutoff | 该历史信号所声称的**研究截止时点**，不证明当时实际发布 |
+| market | CN-A |
+| forecast_horizon_days | 未来交易日数量，非自然日 |
+| model_id | 模型标识；当前只部分绑定配置与脚本身份，不能视为完整训练身份 |
+| universe_id | 当前为固定研究样本哈希，**不是历史动态成分证明** |
+| data_snapshot_id | 快照 manifest 的摘要身份；摘要不能代替内容/PIT 检验 |
+| predictions | 唯一证券代码及有限浮点评分的数组，可为空；代码如600519.SH |
 
-An **illustrative schema-only payload** (not a real model output) is:
-
-\`\`\`json
+~~~json
 {
   "schema_version": 1,
-  "run_id": "example-only-no-model-executed",
-  "created_at": "2026-11-16T16:00:00+08:00",
-  "signal_cutoff": "2026-11-16T15:05:00+08:00",
+  "run_id": "example-not-a-real-run",
+  "created_at": "2026-11-16T18:00:00+08:00",
+  "signal_cutoff": "2026-09-30T15:10:00+08:00",
   "market": "CN-A",
   "forecast_horizon_days": 10,
   "model_id": "example-untrained",
-  "universe_id": "example-not-PIT-qualified",
+  "universe_id": "example-fixed-cohort",
   "data_snapshot_id": "example-no-real-data",
   "predictions": []
 }
-\`\`\`
+~~~
 
-\`aql validate-artifact FILE\` checks structure, valid timestamps, allowed symbol format, finite scores and duplicate symbols. It cannot establish that underlying information was actually available at cutoff. Actual capture/publish/revision history, coverage, training identity, output artifacts and integrity hashes are future producer responsibilities.
+示例只用于格式说明，**不是真实行情、模型预测或交易信号**。命令 aql validate-artifact 仅验证字段、时间格式、证券代码、非有限分数与去重等结构要求；不能证明数据在历史截止时可得，也不能证明模型真正运行、跨批次统计正确或盈利。
 
-A score is an arbitrary model output, **not an implied probability of winning, predicted percent return, signal to buy, or realized performance**. Buy/sell eligibility, positions, fills and net P&L belong to separate, future versioned contracts.
+## 研究输出与发布限制
 
-A research interface should explicitly distinguish no candidates, unavailable/stale data, unvalidated score, failed study, and no trade.
+- 模型分数一般只是数值排序，不直接等于收益率、胜率、上涨概率或 BUY/SELL。
+- 当前 study-report.json 的 RankIC、样本数量、研究状态和经济净收益缺失应明确展示；研究程序未跑通时不要生成看似可信的评分。
+- 当前 publish-tsp 会将历史结果放在 TSP 的 latest-* 路径，**latest 指最近发布的历史实验，不是最新交易日信号**；不得据此宣称实时荐股。
+- 完整金融数据资格还需源时点/股票池版本、训练配置与代码版本、标签成熟度、模型/推理身份、成本及真实可成交路径。需在后续研究产物版本中落实，不能通过给 V1 增加文字来冒充已有能力。
+
+失效结果（NO_DATA、FAILED、NOT_QUALIFIED、NO_TRADE）必须和真实无候选结果区分，保留原始失败记录。

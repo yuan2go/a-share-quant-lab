@@ -1,48 +1,31 @@
 # A-Share Quant Lab
 
-A股选股、买卖点与交易价值研究实验室。**独立 Python 应用依赖 Microsoft Qlib**，使用独立的 Tick Stock Panel (TSP) 作为可选的现成 Web 研究工作台。不 Fork Qlib 或 TSP，也不更改 market-regime-alpha (MRA)。
+**独立的 A 股选股与买卖点研究应用。** 官方 [Qlib](https://github.com/microsoft/qlib) 负责因子、机器学习及研究计算；[TSP](https://github.com/shy3130/tick-stock-panel) 是可选的独立 Web 工作台。本仓库管理 A 股数据与研究协议，不 Fork 两者，也不写入 [MRA](https://github.com/yuan2go/market-regime-alpha) 的运行实例。
 
-> 当前阶段（2026-11-16）：DuckDB/Parquet 数据链已经通过合成行情 GitHub CI；用户数据网关、实际 Qlib 模型训练、TSP 本机运行、样本外净收益均未验证。代码和测试通过不代表策略盈利。
+**当前结论（2026-11-16）**：DuckDB/Parquet 在合成数据下通过 GitHub CI；真实 Tushare 网关、Qlib Binary/LightGBM 端到端、TSP 浏览器展示均**未实测通过**。没有证据支持稳定选股优势、有效买卖点或扣费盈利；不支持自动实盘交易。
 
-## 当前数据与研究架构
+## 研究数据与输出
 
 ~~~text
-Tushare HTTPS (token only from local environment / Actions secret)
-             |
-             v
-DuckDB local market store (data/market.duckdb)
-    |  immutable COMPLETE/FAILED source captures, incremental revisions
-    |---- TSP read-only daily/adj_factor adapter --> TSP native market pages
-    |
-    v
-Frozen per-stock Parquet + SHA256 manifest
-    |
-    v
-Official Qlib dump_bin.py --> Qlib Binary
-    |
-    v
-Qlib Alpha158 + LightGBM vs simple momentum
-    |
-    v
-Historical ranking diagnostics --> read-only TSP Qlib study extension
+Tushare HTTP (令牌仅在私有环境)
+    ↓
+DuckDB：采集批次、原始行情、累计复权因子、交易日历
+    ├─ 只读历史行情 → TSP 自身数据与 K 线页面
+    └─ 冻结 Parquet 快照及 SHA256 → Qlib 官方 Binary
+                                              ↓
+                                     Alpha158/LightGBM
+                                     对照20日动量排序
+                                              ↓
+                                     历史 RankIC/预测产物
+                                              ↓
+                                     TSP 只读研究扩展页
 ~~~
 
-**DuckDB 是本研究项目的行情来源数据库，Parquet/Qlib Binary 是可重建的研究投影，TSP 使用自己的数据底座显示行情。** 不创建并行的 PostgreSQL 行情主库，不重写 Qlib 模型、因子或 TSP 的原生 K线。旧 CSV 中间导出代码已退出当前链路；历史仍由 Git 保存。
+DuckDB 是**本项目的本地行情来源记录**，Parquet 和 Qlib Binary 为可重建的研究投影；TSP 自行管理展示缓存。原来的直接 CSV 研究导出已退出现行链路。CSV 和数据库谁快尚无可比性能实测。
 
-## 交付与验证边界
+## 从这里开始
 
-| 模块 | 已实现 | 本次已验证 |
-| --- | --- | --- |
-| Tushare HTTP | trade_cal / daily / adj_factor 接口和数据单位校验 | 合成数据；真实网关权限未知 |
-| DuckDB | 原价、累计复权因子、交易日历、采集批次及最新完整版本查询 | CI 真实 DuckDB 读写与失败隔离 |
-| Parquet | 压缩、版本化、SHA256、原始批次血缘 | CI 真实 Parquet 写入/读取 |
-| Qlib | 使用官方 Parquet-to-Binary 转换器，Alpha158+LightGBM 研究入口 | 代码校验；未运行真实模型 |
-| TSP | DuckDB 只读行情接口、研究页面扩展包 | 尚未在用户 TSP 实例中安装 |
-| 交易 | 不支持真实自动下单 | 尚无可证明的净收益 |
-
-## 安装入口
-
-Python 3.11+，本地数据存储：
+Python 3.11+；仅检查本地实现，不访问行情：
 
 ~~~bash
 python -m pip install -e '.[storage]'
@@ -50,16 +33,21 @@ aql status
 python -m unittest discover -s tests -v
 ~~~
 
-完整 Qlib 实验使用隔离环境安装研究依赖：
+真实数据需要环境变量 TUSHARE_TOKEN，绝不写进公开 Git。第一次真实实验**先核对数据和模型链路，再讨论选股优势**，不要直接据历史排名生成买卖建议。
 
-~~~bash
-python -m pip install -e '.[qlib]'
-~~~
+## 文档职责与优先级
 
-**私密数据令牌使用 TUSHARE_TOKEN 环境变量或 GitHub Actions Secret。** 不要提交到这个公开仓库。
+| 阅读顺序 | 文件 | 作用 |
+| --- | --- | --- |
+| 1 | [AGENTS.md](AGENTS.md) | Codex 权限、证据纪律和变更原则 |
+| 2 | [项目状态与下一验收](docs/ROADMAP.md) | 已验证范围、唯一优先工作及受阻条件 |
+| 3 | [研究协议](docs/RESEARCH-PROTOCOL.md) | 冻结的首轮选股比较、标签、评价和升级条件 |
+| 4 | [数据合同](docs/STORE-CONTRACT.md) | DuckDB/Parquet/Qlib 血缘与已知数据限制 |
+| 5 | [架构边界](docs/ARCHITECTURE.md) | Qlib、TSP、研究应用、MRA 的责任划分 |
+| 按需 | [真实数据运行手册](docs/RUN-TUSHARE-QLIB.md) | 命令、权限、复现、故障判断 |
+| 按需 | [研究产物合同](docs/RESEARCH-ARTIFACT.md) | 预测 JSON 的**结构**，非盈利证明 |
+| 按需 | [TSP 集成说明](integrations/tsp/README.md) | 可选页面接入和部署边界 |
 
-使用说明：[Tushare/DuckDB/Parquet/Qlib/TSP 运行手册](docs/RUN-TUSHARE-QLIB.md) · [数据存储合同](docs/STORE-CONTRACT.md) · [现行架构](docs/ARCHITECTURE.md) · [研究协议](docs/RESEARCH-PROTOCOL.md) · [状态](docs/ROADMAP.md)。
-
-首轮30只股票来自固定当代样本，不能宣称无幸存者偏差、严格 PIT 或真实交易有效。预测排名 RankIC 不等于盈利概率或费用后收益。允许 NO_TRADE 和 DO_NOT_ADOPT。
+实现事实以当前代码及对应真实运行证据为准；文档说明不能自动升级为已实现/已通过。当前30只固定股票只是回顾性研究样本，并非历史动态股票池，不能宣称严格 PIT 或真实未见样本。
 
 MIT License。

@@ -1,27 +1,16 @@
-# TSP adapter — DuckDB data and a read-only Qlib research view
+# TSP 接入边界（当前非已部署系统）
 
-The lab does **not** copy or fork Tick Stock Panel, and its Python Qlib process stays outside TSP's web worker.
+本仓库**没有**复制、Fork、安装或启动 TSP。TSP v0.3.37 的公开扩展协议提供页面/后端接口，本仓库目前有对应扩展源码及打包脚本，但用户运行实例与浏览器链路尚未验证。
 
-## History adapter
+两种接入职责：
 
-First ingest the authorized source into a completed DuckDB capture, then stop the writer and run:
+| 组件 | 路径 | 作用 |
+| --- | --- | --- |
+| 历史数据源 YAML | tushare_aql.yaml | TSP 调用本仓库只读 DuckDB 网关，按 TSP 格式提供 stock daily/adj_factor；不提供分钟、实时、ETF、指数、财务 |
+| 独立研究扩展 | extension.yaml、backend/、frontend/ | 读取已发布历史研究 JSON，显示排名与截止时钟、调用 TSP 原生个股详情；无自动 BUY/SELL 或 Qlib 训练 |
 
-~~~bash
-python -m ashare_quant_lab.tsp_gateway --db-path data/market.duckdb
-~~~
+首先在本项目完成真实数据采集，并停止 DuckDB 的独立写进程，才能启动 TSP 数据网关。TSP 页面同步后须核对原价、数据来源及因子事件；查询到某支股票不等于全市场数据合格。运行中的 TSP 与研究数据仍是两套独立存储，不直接写对方数据库。
 
-The gateway accepts historical stock daily/adj_factor requests and queries only the latest COMPLETE DuckDB revisions. It does not send HTTP requests to Tushare. Cumulative factor snapshots are converted to TSP per-event ex_factor; raw prices, shares and CNY are retained.
+命令、部署和安全细节仅维护在 [统一运行手册](../../docs/RUN-TUSHARE-QLIB.md)。目前最高优先级是**真实 Qlib 选股实验闭环**，不因 UI 完整而先引入另一套模型/回测系统。
 
-Copy tushare_aql.yaml into TSP data/data_sources, reload and test it in Settings -> Data sources, then explicitly select both historical datasets and run a small TSP history sync. TSP owns its own display Parquet/DuckDB. The lab's DuckDB remains single-writer: stop gateway when another process ingests source history. Do not expose the unauthenticated gateway to the public Internet.
-
-## Study page
-
-~~~bash
-python scripts/package_tsp_extension.py
-~~~
-
-Import the trusted ZIP through TSP Settings -> Import and Backup, restart, and load the Qlib research page. Publish a real study result to the existing TSP data directory using aql publish-tsp. It displays research cutoff, model rank scores and status and invokes native TSP stock preview; it does not issue investment or brokerage orders.
-
-Realtime, financial statements, minute data, ETFs, index bars and historical PIT membership are not supplied by this adapter. Actual TSP deployment has not been verified.
-
-Upstream extension contract: https://github.com/shy3130/tick-stock-panel/blob/v0.3.37/docs/extension-packages.md
+上游扩展协议：[TSP v0.3.37 extension-packages.md](https://github.com/shy3130/tick-stock-panel/blob/v0.3.37/docs/extension-packages.md)。

@@ -1,12 +1,27 @@
-# A-Share Quant Lab — active collaboration rules
+# Codex / 开发协作约束
 
-Before production changes, read README.md, docs/ARCHITECTURE.md, docs/STORE-CONTRACT.md, docs/RESEARCH-PROTOCOL.md and docs/ROADMAP.md. Current code and actual evidence outrank stale prose. Preserve negative research and necessary history while retiring obsolete current entrypoints.
+## 目标与来源
 
-- Goal: independent A-share stock-selection/buy-sell research laboratory that tests robust, executable after-cost economic value. No trade and do-not-adopt are valid.
-- Qlib is the external data/factor/model/research dependency; TSP is the independent supported UI host; MRA remains a separate system. No Qlib/TSP fork, duplicate backtest engine, new DB cluster, complex agent platform or auto broker order without demonstrated need and authorization.
-- DuckDB is the local source database of versioned Tushare market captures. COMPLETE vs FAILED must be respected. Parquet is immutable research projection with SHA and contributing capture IDs. Qlib Binary is official conversion; TSP owns a separate display copy. Do not permit competing market-data authorities.
-- Credentials must stay outside public Git, URLs and model artifacts; use local environment or secret manager. Historical source capture time does not imply prior public availability or strict PIT. Fixed present-day sample is RETROSPECTIVE_ONLY and vulnerable to survivorship bias.
-- Tushare volume hand-to-share and amount thousand-CNY-to-CNY conversion must be correct. Cumulative adj_factor is not TSP event ex_factor. Do not invent missing VWAP or other source fields.
-- DuckDB is single-writer. Stop TSP gateway when a separate DB ingest runs; validate that the latest complete capture is what Qlib and TSP actually consume.
-- Scores, RankIC, win rates, feasible trades and after-cost accounts are different. Verify exact information/cutoff/label times, dynamic membership, corporate actions, security-specific trading rules, costs and unfilled orders before claiming economic alpha or buy/sell effectiveness.
-- Choose necessary risk-based tests. CI on synthetic data is not real proxy, local TSP, Qlib training, PIT or trading evidence. Keep both successful and negative experimental artifacts.
+本仓库要解决的是 A 股**选股与买卖点的可验证交易价值**，不是搭建更多量化框架。开始前按需阅读 README、docs/ROADMAP.md、docs/RESEARCH-PROTOCOL.md、docs/STORE-CONTRACT.md 和受影响源码；先处理会误导当前任务的过期现行说明，保留原始及阴性研究证据。
+
+以**用户本次授权 → 现行协议与状态 → 实际源码和运行记录**厘清职责；文字记录不代替代码与实测。任何工作均要写明完成、验证、待验证与失败范围。
+
+## 架构与业务边界
+
+- 这是独立 Python 研究应用。Qlib 是外部模型/因子依赖；TSP 是可选的独立页面宿主；MRA 保持独立。优先使用现有有效扩展点，不 Fork 内核、不重复实现通用训练、图表或回测引擎。
+- DuckDB 保存本地行情**采集版本**；Parquet 是冻结研究快照，Qlib Binary 是官方转换投影，TSP 另存展示数据。不能把这几层当成同一份已证明一致的历史 PIT 证据。
+- 分清已实现、合成测试、真实源验证、模型预测、真实样本外、模拟交易和实盘。RankIC、方向正确率、交易胜率和扣费账户收益不可互相替代。
+
+## 正确性与安全
+
+- 绝不向 Git、PR、CI 日志、URL、研究报告写入用户令牌、付费行情或账户秘密；使用进程环境/Secret。公开仓库中的 Actions 产物须检查数据使用许可。
+- 必须核对数据源单位、复权/分红、公告/采集/可用时钟、股票池动态资格、标签成熟度、Qlib 索引对齐及历史修订；缺口影响何种结论须写清。
+- 真实 A 股成交模拟还需证券与历史期间适用的 T+1、涨跌限制、整手、停复牌、费用、冲击、现金与实际未成交证据。未验证时不能输出采用交易的结论。
+- DuckDB 为单写进程场景：不得将本库 schema 写入 TSP/MRA 数据库；运行另一个采集进程前停止本库的独立 TSP 读网关。不得在未获授权的运行实例、账户或数据库上进行破坏性操作。
+- 不自动交易、不购买数据、不推定已有生产账户权限。
+
+## 开发与验收
+
+围绕当前最大瓶颈做必要改动，遵循可维护、清晰、错误可定位的工程标准，而非“最小能运行”或功能堆积。必要测试覆盖变更风险和**实际链路**；现有 CI 的合成数据通过，不代表真实网关/Qlib/TSP 已联调。确实受阻时保留诊断与可用部分，禁止用假数据冒充真实成果。
+
+正式比较先冻结目标、基线、信息时点、样本与费用；原来的失败和阴性实验不得覆盖。允许不交易、暂不采用和停止无效假设。
