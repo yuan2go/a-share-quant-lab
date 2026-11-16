@@ -4,19 +4,19 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "a-share-quant-lab"
-version = "0.1.0"
-description = "An evidence-first A-share stock-selection and trade-timing research lab"
+version = "0.2.0"
+description = "A-share Qlib research with DuckDB raw-data history and Parquet snapshots"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { file = "LICENSE" }
+license = "MIT"
 authors = [{ name = "yuan2go" }]
 dependencies = []
 
 [project.optional-dependencies]
-# Isolated research environment only. Not installed by default in the TSP host.
-# PyPI currently publishes pyqlib 0.9.7; upstream GitHub v0.9.8 is source-only.
-# Local compatibility must still be tested before any research use.
-qlib = ["pyqlib==0.9.7"]
+# Research data owner and native Parquet projection
+storage = ["duckdb>=1.2,<2"]
+# Full local study environment: Qlib's dump_bin.py uses pandas.read_parquet
+qlib = ["duckdb>=1.2,<2", "pyqlib==0.9.7", "pyarrow>=14,<30", "fire>=0.5"]
 
 [project.scripts]
 aql = "ashare_quant_lab.cli:main"
