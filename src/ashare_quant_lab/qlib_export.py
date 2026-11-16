@@ -57,7 +57,9 @@ def build_adjusted_csv_rows(bars: list[dict], factors: dict[str, float]) -> list
     for bar in bars:
         ratio = factors[bar["trade_date"]] / first
         volume = bar["vol"]
-        vwap = (bar["amt"] / volume if volume > 0 else bar["close"]) * ratio
+        if volume <= 0 or bar["amt"] <= 0:
+            raise SourceError("cannot synthesize VWAP for missing/zero volume or amount")
+        vwap = bar["amt"] / volume * ratio
         result.append({
             "date": bar["trade_date"],
             **{k: bar[k] * ratio for k in ("open", "high", "low", "close")},
