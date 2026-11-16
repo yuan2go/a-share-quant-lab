@@ -1,10 +1,9 @@
-# Copy into TSP's data/data_sources/tushare_aql.yaml and reload.
-# Works when TSP and the aql gateway run on the same host network.
-# Docker TSP users must use a private container network or deliberately
-# configure host.docker.internal plus firewall rules. Do not expose the gateway.
-# Daily/adj_factor ONLY, not realtime/minute/financial/index/ETF data.
+# Local completed-capture DuckDB gateway for TSP stock historical data.
+# Copy to your TSP data/data_sources/ and reload; no Tushare token here.
+# Docker TSP requires a properly firewalled host bridge/private network.
+# Only A-share daily bars and adjustment events; no realtime/ETF/financial.
 name: tushare_aql
-display_name: "Tushare Proxy — A-share Daily (AQL)"
+display_name: "AQL DuckDB Historical A-Shares"
 auth:
   type: none
 datasets:
@@ -12,7 +11,7 @@ datasets:
     url: http://127.0.0.1:8765/daily
     method: POST
     batch: 5
-    rpm: 20
+    rpm: 60
     timeout: 120
     response_path: data
     field_map:
@@ -30,7 +29,7 @@ datasets:
     url: http://127.0.0.1:8765/adj_factor
     method: POST
     batch: 5
-    rpm: 20
+    rpm: 60
     timeout: 120
     response_path: data
     field_map:
