@@ -1,4 +1,5 @@
-# Manual only: requires a repository secret named TUSHARE_TOKEN.
+# Manual research only; no purchase, brokerage, or scheduled background task.
+# In this public repository, market-data API credentials belong in Actions Secrets.
 name: A-share first real-data research (manual)
 
 on:
@@ -15,52 +16,60 @@ jobs:
       TUSHARE_TOKEN: ${{ secrets.TUSHARE_TOKEN }}
       TUSHARE_HTTP_URL: https://t.xiaodefa.top/
     steps:
-      - name: Checkout experiment implementation
+      - name: Checkout research implementation
         uses: actions/checkout@v4
-      - name: Python research environment
+      - name: Python Qlib and DuckDB environment
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Check source credentials without printing them
+      - name: Require data-provider credentials (no token output)
         run: |
           if [ -z "$TUSHARE_TOKEN" ]; then
-            echo "::error::Repository Actions secret TUSHARE_TOKEN is missing; no market data fetched."
+            echo "::error::TUSHARE_TOKEN Actions secret missing; no provider request started."
             exit 1
           fi
-      - name: Install Qlib and export dependencies
-        run: python -m pip install -e '.[qlib]' fire
-      - name: Check live trade-calendar permission
+      - name: Install Qlib plus DuckDB and Parquet converter dependencies
+        run: python -m pip install -e '.[qlib]'
+      - name: Probe actual Tushare exchange calendar
         run: aql check-source --start 20260101 --end 20261116
-      - name: Export fixed-cohort retrospective research snapshot
+      - name: Capture real source data in local DuckDB (not published)
         run: |
-          aql export-qlib-csv \
+          aql ingest-market \
+            --db-path data/market.duckdb \
             --symbols-file configs/first-study-cohort.txt \
             --start 2019-01-02 --end 2026-10-30 \
-            --output-dir data/first-study-csv \
             --pace-seconds 2
-      - name: Fetch matching official Qlib CSV converter
+          aql market-status --db-path data/market.duckdb
+      - name: Export immutable Parquet dataset for Qlib
+        run: |
+          aql export-qlib-parquet \
+            --db-path data/market.duckdb \
+            --symbols-file configs/first-study-cohort.txt \
+            --start 2019-01-02 --end 2026-10-30 \
+            --output-dir data/first-study-parquet
+      - name: Fetch official Qlib converter matching installed version
         run: git clone --depth 1 --branch v0.9.7 https://github.com/microsoft/qlib.git "$RUNNER_TEMP/qlib-src"
-      - name: Convert CSV to Qlib format
+      - name: Convert verified Parquet to Qlib binary
         run: |
           aql dump-qlib \
             --qlib-repo "$RUNNER_TEMP/qlib-src" \
-            --csv-dir data/first-study-csv \
+            --snapshot-dir data/first-study-parquet \
             --provider-uri data/first-study-qlib
-      - name: Execute LightGBM versus momentum ranking study
+      - name: Run retrospective LightGBM versus momentum RankIC study
         run: |
           aql run-first-study \
             --provider-uri data/first-study-qlib \
-            --manifest data/first-study-csv/manifest.json \
+            --manifest data/first-study-parquet/manifest.json \
             --config configs/first-study.json \
             --output-dir outputs/first-study
-      - name: Validate model output shape
+      - name: Validate produced ranking artifact
         run: aql validate-artifact outputs/first-study/prediction-batch.json
-      - name: Upload research summary only; no paid market bars
+      - name: Preserve only derived research outputs (not licensed raw bars)
         uses: actions/upload-artifact@v4
         with:
           name: aql-first-study-report
           path: |
             outputs/first-study/prediction-batch.json
             outputs/first-study/study-report.json
-          if-no-files-found: error
           retention-days: 7
+          if-no-files-found: error
