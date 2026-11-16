@@ -12,7 +12,7 @@
 | signal_cutoff | 该历史信号所声称的**研究截止时点**，不证明当时实际发布 |
 | market | CN-A |
 | forecast_horizon_days | 未来交易日数量，非自然日 |
-| model_id | 模型标识；当前只部分绑定配置与脚本身份，不能视为完整训练身份 |
+| model_id | 模型标识；V1仍只绑定部分配置与脚本；完整依赖/模型参数、model.txt SHA256、源代码摘要另见study-report.json |
 | universe_id | 当前为固定研究样本哈希，**不是历史动态成分证明** |
 | data_snapshot_id | 快照 manifest 的摘要身份；摘要不能代替内容/PIT 检验 |
 | predictions | 唯一证券代码及有限浮点评分的数组，可为空；代码如600519.SH |
@@ -22,7 +22,7 @@
   "schema_version": 1,
   "run_id": "example-not-a-real-run",
   "created_at": "2026-11-16T18:00:00+08:00",
-  "signal_cutoff": "2026-09-30T15:10:00+08:00",
+  "signal_cutoff": "2026-09-30T18:00:00+08:00",
   "market": "CN-A",
   "forecast_horizon_days": 10,
   "model_id": "example-untrained",
@@ -37,7 +37,7 @@
 ## 研究输出与发布限制
 
 - 模型分数一般只是数值排序，不直接等于收益率、胜率、上涨概率或 BUY/SELL。
-- 当前 study-report.json 的 RankIC、样本数量、研究状态和经济净收益缺失应明确展示；研究程序未跑通时不要生成看似可信的评分。
+- 当前 study-report.json 保存共同有效日期/证券分母、年度RankIC、模型参数/版本与模型哈希；daily-rank-ic.json及paired-observations.parquet保留完整核对明细，均在外置盘。RankIC、样本数量、研究状态和经济净收益缺失应明确展示；研究程序未跑通时不要生成看似可信的评分。
 - 当前 publish-tsp 会将历史结果放在 TSP 的 latest-* 路径，**latest 指最近发布的历史实验，不是最新交易日信号**；不得据此宣称实时荐股。
 - 完整金融数据资格还需源时点/股票池版本、训练配置与代码版本、标签成熟度、模型/推理身份、成本及真实可成交路径。需在后续研究产物版本中落实，不能通过给 V1 增加文字来冒充已有能力。
 

@@ -1,0 +1,374 @@
+{
+  "work_package": "WP-AQL-FIRST-REAL-RESEARCH-01",
+  "status": "PASS_RETROSPECTIVE_PREDICTION_DIAGNOSTIC_ONLY",
+  "predictive_conclusion": "NO_OVERALL_INCREMENT_OVER_20_DAY_MOMENTUM",
+  "decision": "DO_NOT_ADVANCE_BUY_SELL_DEVELOPMENT",
+  "run_id": "8e5bf49b0f1ce6bce7be20fd",
+  "code_revision": "86ce457f4d38b30f0fd5aa565057552f9003a423",
+  "snapshot_id": "06b067a408e7c713d34b5625afba615a01cb939a4bb0dd525e332a77abd142d3",
+  "source_capture_ids": [
+    "6c52861b55094abebaf7aaf619ec4caa"
+  ],
+  "source_range": [
+    "2019-01-02",
+    "2026-10-30"
+  ],
+  "snapshot_created_at": "2026-11-16T14:46:18.963706+00:00",
+  "source_preflight": {
+    "started_at": "2026-11-16T14:40:32.883710+00:00",
+    "range": [
+      "2026-09-01",
+      "2026-09-30"
+    ],
+    "symbol": "600519.SH",
+    "apis": {
+      "trade_cal": {
+        "status": "RECEIVED",
+        "rows": 30,
+        "response_sha256": "000830826e9d7962dcae4b6be3a50388f7c5c4170e34b7512b685736f9bef277"
+      },
+      "daily": {
+        "status": "RECEIVED",
+        "rows": 21,
+        "response_sha256": "71381e81a6ffa73c985569aa7dc84822a48d7fcadd0e0d51ba09655104310e28"
+      },
+      "adj_factor": {
+        "status": "RECEIVED",
+        "rows": 21,
+        "response_sha256": "9b9cda1f2e6b31011c9f1fa49c303e61c9d4d73c0f30c94df6b332dfc59938c6"
+      }
+    },
+    "historical_PIT_qualified": false,
+    "unit_contract": {
+      "daily_vol": "hands -> shares * 100",
+      "daily_amount": "thousand CNY -> CNY * 1000",
+      "adj_factor": "cumulative; not an event ratio"
+    },
+    "coverage": {
+      "open_sessions": 21,
+      "daily_rows": 21,
+      "missing_open_dates_unclassified": [],
+      "missing_factors_for_bars": [],
+      "unit_vwap_outside_ohlc_2pct_tolerance": 0
+    },
+    "status": "RECEIVED_AND_DIMENSIONALLY_VALIDATED_NOT_PIT"
+  },
+  "source_calendar_sessions": 1897,
+  "source_daily_rows": 56840,
+  "source_coverage": [
+    {
+      "symbol": "000001.SZ",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "000333.SZ",
+      "bars": 1886,
+      "missing_open_sessions_unclassified": 11
+    },
+    {
+      "symbol": "000651.SZ",
+      "bars": 1891,
+      "missing_open_sessions_unclassified": 6
+    },
+    {
+      "symbol": "000725.SZ",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "000858.SZ",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "002049.SZ",
+      "bars": 1876,
+      "missing_open_sessions_unclassified": 21
+    },
+    {
+      "symbol": "002230.SZ",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "002415.SZ",
+      "bars": 1895,
+      "missing_open_sessions_unclassified": 2
+    },
+    {
+      "symbol": "002594.SZ",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "002714.SZ",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "300059.SZ",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "300124.SZ",
+      "bars": 1886,
+      "missing_open_sessions_unclassified": 11
+    },
+    {
+      "symbol": "600000.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "600028.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "600030.SH",
+      "bars": 1884,
+      "missing_open_sessions_unclassified": 13
+    },
+    {
+      "symbol": "600036.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "600050.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "600089.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "600276.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "600309.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "600519.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "601012.SH",
+      "bars": 1891,
+      "missing_open_sessions_unclassified": 6
+    },
+    {
+      "symbol": "601166.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "601318.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "601398.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "601601.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "601668.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "601888.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "601919.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    },
+    {
+      "symbol": "603288.SH",
+      "bars": 1897,
+      "missing_open_sessions_unclassified": 0
+    }
+  ],
+  "calendar_comparison": "SSE_SZSE_MATCH",
+  "source_consistency_outliers": 0,
+  "factor_change_events_checked": 311,
+  "source_response_manifest_sha256": "d2017bb1e0988b55eba62a346e66104f820199e8bc1579905282ffb62d298bda",
+  "official_converter_commit": "da920b7f954f48ab1bb64117c976710de198373e",
+  "official_converter_sha256": "b8f34c57ce1ef4b1772f3909735e66058f21b25bd7ab8a5f16318822401fe53f",
+  "binary_projection_audit": {
+    "atol": 1e-07,
+    "calendar_sessions": 1897,
+    "checked_field_values": 454720,
+    "rtol": 2e-06,
+    "status": "ALL_PARQUET_VALUES_MATCH_FLOAT32_BINARY"
+  },
+  "model_sha256": "88866d8c90b0683bfa348b7dedd509b2ab9f0ede41397fe95d7ef19edf000217",
+  "model_parameters": {
+    "objective": "mse",
+    "verbosity": -1,
+    "learning_rate": 0.05,
+    "max_depth": 6,
+    "num_leaves": 31,
+    "num_threads": 4,
+    "seed": 23
+  },
+  "training_controls": {
+    "num_boost_round": 240,
+    "early_stopping_rounds": 30,
+    "best_iteration": 1,
+    "alpha158_feature_count": 158,
+    "learn_label_transform": "Qlib default DropnaLabel + CSZScoreNorm; evaluation uses raw DK_R returns"
+  },
+  "packages": {
+    "pyqlib": "0.9.7",
+    "lightgbm": "4.7.0",
+    "pandas": "2.3.3",
+    "numpy": "2.5.5",
+    "duckdb": "1.5.6",
+    "pyarrow": "19.0.1",
+    "mlflow": "2.22.5"
+  },
+  "python": "3.12.13",
+  "segments": {
+    "train": {
+      "feature_values": 4535232,
+      "nonfinite_feature_values": 11164,
+      "rows_without_any_finite_features": 0,
+      "raw_rows": 28704,
+      "raw_finite_labels": 28596,
+      "learn_rows": 28596,
+      "first": "2019-01-02 00:00:00",
+      "last": "2022-12-09 00:00:00"
+    },
+    "valid": {
+      "feature_values": 1075980,
+      "nonfinite_feature_values": 0,
+      "rows_without_any_finite_features": 0,
+      "raw_rows": 6810,
+      "raw_finite_labels": 6810,
+      "learn_rows": 6810,
+      "first": "2023-01-03 00:00:00",
+      "last": "2023-12-08 00:00:00"
+    },
+    "test": {
+      "feature_values": 3152100,
+      "nonfinite_feature_values": 956,
+      "rows_without_any_finite_features": 0,
+      "raw_rows": 19950,
+      "raw_finite_labels": 19930,
+      "learn_rows": 19930,
+      "first": "2024-01-03 00:00:00",
+      "last": "2026-09-30 00:00:00"
+    }
+  },
+  "target_audit": {
+    "momentum": {
+      "checked_rows": 56904,
+      "status": "NATIVE_MOMENTUM_MATCHES_CALENDAR_SHIFT"
+    },
+    "train": {
+      "checked_rows": 28704,
+      "finite_labels": 28596,
+      "status": "NATIVE_LABEL_MATCHES_CALENDAR_SHIFT"
+    },
+    "valid": {
+      "checked_rows": 6810,
+      "finite_labels": 6810,
+      "status": "NATIVE_LABEL_MATCHES_CALENDAR_SHIFT"
+    },
+    "test": {
+      "checked_rows": 19950,
+      "finite_labels": 19930,
+      "status": "NATIVE_LABEL_MATCHES_CALENDAR_SHIFT"
+    }
+  },
+  "config_sha256": "4196dda0a852ace05b783818d05f33190cb70f137ac1edda4980953790c1e9ca",
+  "paired_evaluation": {
+    "days": 665,
+    "pairs": 19919,
+    "model_mean_rank_ic": -0.001150046883912784,
+    "momentum_mean_rank_ic": 0.011360903781873264,
+    "difference": -0.012510950665786048,
+    "min_cross_section": 10,
+    "input_finite_pairs": {
+      "model": 19950,
+      "momentum": 19930,
+      "label": 19930
+    },
+    "union_pairs": 19950,
+    "common_finite_pairs": 19919,
+    "excluded_nonfinite_or_missing_pairs": 31,
+    "missing_or_nonfinite_by_column": {
+      "model": 0,
+      "momentum": 20,
+      "label": 20
+    },
+    "excluded_days": [],
+    "days_without_any_common_pairs": [],
+    "by_year": {
+      "2024": {
+        "days": 241,
+        "pairs": 7230,
+        "model_mean_rank_ic": 0.04611904433518117,
+        "momentum_mean_rank_ic": 0.025585334234232055,
+        "difference": 0.020533710100949117
+      },
+      "2025": {
+        "days": 243,
+        "pairs": 7277,
+        "model_mean_rank_ic": -0.020783126340342135,
+        "momentum_mean_rank_ic": 0.04111291989404065,
+        "difference": -0.06189604623438279
+      },
+      "2026": {
+        "days": 181,
+        "pairs": 5412,
+        "model_mean_rank_ic": -0.037730227413687985,
+        "momentum_mean_rank_ic": -0.04752212193235404,
+        "difference": 0.009791894518666057
+      }
+    },
+    "statistical_significance": "NOT_ESTABLISHED_OVERLAPPING_10_SESSION_TARGETS"
+  },
+  "full_capture_repetition": {
+    "first_id": "11d923a05b0c4b809c84b3e37754d6ca",
+    "second_id": "6c52861b55094abebaf7aaf619ec4caa",
+    "identical_rows": 56840,
+    "qualification": "same-session repeats, not historical revision/PIT proof"
+  },
+  "model_repetition": {
+    "identical_observation_rows": 19950,
+    "model_sha256": "88866d8c90b0683bfa348b7dedd509b2ab9f0ede41397fe95d7ef19edf000217",
+    "paired_metrics_identical": true,
+    "parameters_changed": false
+  },
+  "strict_PIT": "NOT_QUALIFIED",
+  "independent_OOS": "NOT_ESTABLISHED",
+  "economic_net_return": null,
+  "licensed_raw_data_published": false,
+  "individual_predictions_published": false,
+  "verification": {
+    "unit_tests": "35 PASS",
+    "native_synthetic_local": "PASS_SYNTHETIC_ONLY",
+    "native_synthetic_CI": "separate GitHub check; see PR head",
+    "real_native_local": "PASS_RETROSPECTIVE_ONLY"
+  }
+}
