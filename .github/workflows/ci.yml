@@ -1,4 +1,4 @@
-name: Python bootstrap and adapter validation
+name: Python research adapters and local DuckDB/Parquet verification
 
 on:
   push:
@@ -10,21 +10,21 @@ permissions:
 jobs:
   python:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Install core package (no market data or ML dependencies)
-        run: python -m pip install -e .
-      - name: Run relevant contract/adapter tests
+      - name: Install core plus native DuckDB (no paid data or Qlib training)
+        run: python -m pip install -e '.[storage]'
+      - name: Verify local database, Parquet, contracts and CLI
         run: python -m unittest discover -s tests -v
-      - name: Validate research CLI entrypoint
+      - name: Check research CLI
         run: aql status
-      - name: Compile Python implementation and package builder
+      - name: Compile Python source
         run: python -m compileall -q src scripts
-      - name: Build TSP extension ZIP
+      - name: Package external TSP page
         run: python scripts/package_tsp_extension.py
-      - name: Check TSP frontend JS syntax
+      - name: Verify JavaScript extension syntax
         run: node --check integrations/tsp/frontend/extension.mjs
