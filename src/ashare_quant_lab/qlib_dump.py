@@ -6,9 +6,13 @@ local research source of truth. No CSV intermediary or homegrown bin writer.
 from __future__ import annotations
 
 import hashlib
+import importlib.metadata
 import json
 import subprocess
 import sys
+import os
+import tempfile
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -48,32 +52,89 @@ def dump_parquet_using_official_qlib(qlib_repo: Path, snapshot_dir: Path, provid
     if dest.exists():
         raise FileExistsError("Qlib output directory exists: never silently overwrite research data")
     dest.parent.mkdir(parents=True, exist_ok=True)
+    stage = Path(tempfile.mkdtemp(prefix=".aql-binary-", dir=dest.parent))
     cmd = [
         sys.executable, str(converter), "dump_all",
         "--data_path", str(base),
-        "--qlib_dir", str(dest),
+        "--qlib_dir", str(stage),
         "--freq", "day", "--max_workers", "4",
         "--file_suffix", ".parquet",
         "--include_fields", "open,high,low,close,vwap,volume,amount,factor",
     ]
-    proc = subprocess.run(cmd, check=False)
-    if proc.returncode:
-        raise SourceError(f"official Qlib Parquet dump failed (exit={proc.returncode})")
-    for name in ("calendars", "features", "instruments"):
-        if not (dest / name).is_dir():
-            raise SourceError(f"Qlib output incomplete: missing {name}")
-    lineage = {
-        "schema_version": 2,
-        "source_manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
-        "converter_sha256": hashlib.sha256(converter.read_bytes()).hexdigest(),
-        "generated_at": datetime.now(timezone.utc).isoformat(),
-        "format": "parquet_to_qlib_binary",
-    }
-    (dest / "aql_source_manifest.json").write_text(
-        json.dumps(lineage, sort_keys=True, indent=2) + "\n", encoding="utf-8",
-    )
-    return {
-        "provider_uri": str(dest), "status": "converted_by_official_qlib_dump",
-        "source_snapshot_id": lineage["source_manifest_sha256"],
-        "experiment_executed": False,
-    }
+    try:
+        proc = subprocess.run(cmd, check=False)
+        if proc.returncode:
+            raise SourceError(f"official Qlib Parquet dump failed (exit={proc.returncode})")
+        for name in ("calendars", "features", "instruments"):
+            if not (stage / name).is_dir():
+                raise SourceError(f"Qlib output incomplete: missing {name}")
+        audit = verify_projection(base, stage, manifest)
+        converter_revision = subprocess.run(["git", "rev-parse", "HEAD"], cwd=converter.parent.parent,
+                                            capture_output=True, text=True, check=False)
+        lineage = {
+            "schema_version": 3,
+            "source_manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
+            "qlib_version": importlib.metadata.version("pyqlib"),
+            "converter_git_revision": converter_revision.stdout.strip(),
+            "converter_sha256": hashlib.sha256(converter.read_bytes()).hexdigest(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "format": "parquet_to_qlib_binary", "projection_audit": audit,
+            "binary_files": binary_hashes(stage),
+        }
+        (stage / "aql_source_manifest.json").write_text(
+            json.dumps(lineage, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+        os.replace(stage, dest)
+    except BaseException:
+        shutil.rmtree(stage, ignore_errors=True)
+        raise
+    return {"provider_uri": str(dest), "status": "converted_and_values_verified",
+            "source_snapshot_id": lineage["source_manifest_sha256"],
+            "projection_audit": audit, "experiment_executed": False}
+
+
+def binary_hashes(provider):
+    return {str(p.relative_to(provider)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for directory in ("calendars", "features", "instruments")
+            for p in sorted((provider / directory).rglob("*")) if p.is_file()}
+
+
+def verify_binary_identity(provider):
+    lineage = json.loads((provider / "aql_source_manifest.json").read_text())
+    if not lineage.get("binary_files") or binary_hashes(provider) != lineage["binary_files"]:
+        raise SourceError("Qlib Binary bytes differ from verified projection; convert a fresh provider")
+
+
+def verify_projection(snapshot, provider, manifest):
+    """Read official float32 binaries independently and check every source value.
+
+    This audits serialization only; native D.features is separately exercised by
+    the study. No custom Binary writer or alternate model engine is involved.
+    """
+    import numpy as np
+    import pandas as pd
+
+    calendar = pd.DatetimeIndex(pd.read_csv(provider / "calendars/day.txt", header=None)[0])
+    expected_calendar = pd.DatetimeIndex(manifest.get("open_dates", []))
+    if not len(expected_calendar) or not calendar.equals(expected_calendar):
+        raise SourceError("Qlib calendar differs from captured exchange open dates")
+    fields = ("open", "high", "low", "close", "vwap", "volume", "amount", "factor")
+    count = 0
+    for item in manifest["files"]:
+        frame = pd.read_parquet(snapshot / item["file"]).set_index("date").sort_index()
+        frame.index = pd.DatetimeIndex(frame.index)
+        instrument = Path(item["file"]).stem.lower()
+        for field in fields:
+            data = np.fromfile(provider / "features" / instrument / f"{field}.day.bin", dtype="<f4")
+            if not len(data) or not np.isfinite(data[0]) or int(data[0]) != data[0]:
+                raise SourceError("invalid official Binary start index")
+            start = int(data[0])
+            if start < 0 or start + len(data) - 1 > len(calendar):
+                raise SourceError("official Binary outside exchange calendar")
+            actual = pd.Series(data[1:], index=calendar[start:start + len(data) - 1])
+            wanted = frame[field].reindex(actual.index)
+            if (not frame.index.isin(actual.index).all()
+                    or not np.allclose(actual.values, wanted.values, rtol=2e-6, atol=1e-7, equal_nan=True)):
+                raise SourceError(f"official Binary value mismatch: {instrument}/{field}")
+            count += len(frame)
+    return {"status": "ALL_PARQUET_VALUES_MATCH_FLOAT32_BINARY", "checked_field_values": count,
+            "calendar_sessions": len(calendar), "rtol": 2e-6, "atol": 1e-7}

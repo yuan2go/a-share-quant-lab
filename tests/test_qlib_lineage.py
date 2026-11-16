@@ -6,7 +6,7 @@ from datetime import date
 from pathlib import Path
 
 from ashare_quant_lab.first_study import StudyError, run_first_qlib_study
-from ashare_quant_lab.qlib_dump import dump_parquet_using_official_qlib
+from ashare_quant_lab.qlib_dump import dump_parquet_using_official_qlib, binary_hashes, verify_binary_identity
 from ashare_quant_lab.market_export import _parquet_rows
 from ashare_quant_lab.tushare_source import SourceError
 
@@ -58,6 +58,18 @@ class QlibLineageTests(unittest.TestCase):
             (provider / "aql_source_manifest.json").write_text(json.dumps({"source_manifest_sha256": "wrong"}))
             with self.assertRaisesRegex(StudyError, "snapshot IDs disagree"):
                 run_first_qlib_study(provider, manifest, config, root / "result")
+
+    def test_mutated_binary_rejected(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            for directory in ("calendars", "features", "instruments"):
+                (root / directory).mkdir()
+            (root / "calendars/day.txt").write_text("2026-01-05\n")
+            (root / "aql_source_manifest.json").write_text(json.dumps({"binary_files": binary_hashes(root)}))
+            verify_binary_identity(root)
+            (root / "calendars/day.txt").write_text("2026-01-06\n")
+            with self.assertRaisesRegex(SourceError, "Binary bytes differ"):
+                verify_binary_identity(root)
 
     def test_zero_volume_does_not_invent_vwap(self):
         bars = [{

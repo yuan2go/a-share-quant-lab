@@ -108,6 +108,26 @@ class MarketStoreTests(unittest.TestCase):
                 self.assertEqual(latest_bars(conn, "600519.SH", start, end)[-1]["close"], 53.0)
 
 
+    def test_export_never_stitches_revised_partial_capture(self):
+        class Revised(FakeTushare):
+            def query(self, api_name, **kwargs):
+                rows = super().query(api_name, **kwargs)
+                if api_name == "adj_factor":
+                    for row in rows:
+                        row["adj_factor"] *= 10
+                return rows
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            db = root / "market.duckdb"
+            first = ingest_market(db, FakeTushare(), ["600519.SH"], date(2026, 1, 5), date(2026, 1, 6))
+            ingest_market(db, Revised(), ["600519.SH"], date(2026, 1, 6), date(2026, 1, 6))
+            export_market_parquet(db, ["600519.SH"], date(2026, 1, 5), date(2026, 1, 6), root / "snapshot", min_history=2)
+            manifest = json.loads((root / "snapshot/manifest.json").read_text())
+            self.assertEqual(manifest["source_capture_ids"], [first["capture_id"]])
+            with connect_store(db, read_only=True) as conn:
+                values = conn.execute("SELECT factor FROM read_parquet(?) ORDER BY date", [str(root / "snapshot/SH600519.parquet")]).fetchall()
+            self.assertEqual(values, [(1.0,), (2.0,)])
+
     def test_refuses_to_modify_non_aql_duckdb_database(self):
         import duckdb
         with tempfile.TemporaryDirectory() as folder:

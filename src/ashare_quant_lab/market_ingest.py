@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import time
 import uuid
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 
 from .market_store import connect_store
@@ -27,11 +27,13 @@ def _sessions(source: TushareClient, start: date, end: date) -> list[tuple[date,
         day = parse_day(row["cal_date"])
         if not start <= day <= end or day in calendar:
             raise SourceError("invalid/duplicate source trade-calendar date")
+        if row.get("exchange", "SSE") != "SSE":
+            raise SourceError("unexpected source trade-calendar exchange")
         status = str(row["is_open"])
         if status not in ("0", "1"):
             raise SourceError("invalid exchange trade-calendar status")
         calendar[day] = status == "1"
-    if not calendar or min(calendar) > start or max(calendar) < end:
+    if set(calendar) != {start + timedelta(days=i) for i in range((end - start).days + 1)}:
         raise SourceError("trade-calendar range incomplete")
     if not any(calendar.values()):
         raise SourceError("no open sessions in source date range")
