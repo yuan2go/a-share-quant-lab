@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from .contracts import validate_prediction_batch
-from .qlib_export import qlib_to_symbol
+from .symbols import qlib_to_symbol
 
 
 class StudyError(RuntimeError):

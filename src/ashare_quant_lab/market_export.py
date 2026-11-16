@@ -16,7 +16,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 from .market_store import connect_store, latest_bars
-from .qlib_export import symbol_to_qlib
+from .symbols import symbol_to_qlib
 from .tushare_source import SourceError, validate_symbol
 
 
