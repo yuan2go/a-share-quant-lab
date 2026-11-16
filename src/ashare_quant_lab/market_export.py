@@ -15,7 +15,7 @@ import tempfile
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-from .market_store import connect_store, latest_bars
+from .market_store import connect_store
 from .symbols import symbol_to_qlib
 from .tushare_source import SourceError, validate_symbol
 
@@ -51,6 +51,7 @@ def export_market_parquet(
     output_dir: Path,
     *,
     min_history: int = 60,
+    capture_id: str | None = None,
 ) -> dict:
     if not symbols or len(symbols) != len(set(symbols)):
         raise ValueError("nonempty unique symbol list required")
@@ -64,22 +65,32 @@ def export_market_parquet(
     stage = Path(tempfile.mkdtemp(prefix=".aql-parquet-", dir=destination.parent))
     try:
         with connect_store(database, read_only=True) as conn:
-            total = conn.execute("SELECT COUNT(*) FROM captures WHERE status='COMPLETE'").fetchone()[0]
-            if total == 0:
-                raise SourceError("no complete DuckDB source capture available")
-            sessions = conn.execute(
-                """SELECT COUNT(DISTINCT t.cal_date)
-                   FROM trade_sessions t JOIN captures c ON c.capture_id=t.capture_id
-                   WHERE c.status='COMPLETE' AND t.is_open
-                     AND t.cal_date>=? AND t.cal_date<=?""",
-                [start, end],
-            ).fetchone()[0]
+            # Never stitch cumulative factors from independently revised histories.
+            candidates = conn.execute(
+                """SELECT capture_id, symbols_json FROM captures
+                   WHERE status='COMPLETE' AND range_start<=? AND range_end>=?
+                   ORDER BY completed_at DESC, capture_id DESC""", [start, end]).fetchall()
+            eligible = [cid for cid, cohort in candidates if set(symbols) <= set(json.loads(cohort))]
+            if capture_id is None:
+                capture_id = eligible[0] if eligible else None
+            if capture_id not in eligible:
+                raise SourceError("no single complete capture covers the requested range/cohort")
+            calendar = conn.execute(
+                """SELECT cal_date FROM trade_sessions WHERE capture_id=? AND is_open
+                   AND cal_date>=? AND cal_date<=? ORDER BY cal_date""",
+                [capture_id, start, end]).fetchall()
+            sessions = len(calendar)
             if sessions < min_history:
                 raise SourceError("exchange calendar too short for this study")
             summary = []
             capture_ids: set[str] = set()
             for symbol in symbols:
-                bars = latest_bars(conn, symbol, start, end)
+                result = conn.execute(
+                    """SELECT * FROM daily_bars WHERE capture_id=? AND symbol=?
+                       AND trade_date>=? AND trade_date<=? ORDER BY trade_date""",
+                    [capture_id, symbol, start, end])
+                columns = [col[0] for col in result.description]
+                bars = [dict(zip(columns, row)) for row in result.fetchall()]
                 if len(bars) < min_history:
                     raise SourceError(f"insufficient recorded bars for {symbol}: {len(bars)}")
                 prepared = _parquet_rows(bars)
@@ -111,6 +122,8 @@ def export_market_parquet(
                     "last": bars[-1]["trade_date"].isoformat(),
                     "open_sessions_in_requested_range": sessions,
                     "coverage_ratio_not_suspension_adjusted": round(len(bars) / sessions, 5),
+                    "missing_open_dates_unclassified": sorted({d[0].isoformat() for d in calendar}
+                                                             - {b["trade_date"].isoformat() for b in bars}),
                     "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                 })
         manifest = {
@@ -123,6 +136,8 @@ def export_market_parquet(
             "source_endpoint": "DuckDB complete captures: daily + adj_factor + trade_cal",
             "database_role": "source_of_truth_local_market_store",
             "source_capture_ids": sorted(capture_ids),
+            "capture_selection": "single_complete_capture_no_revision_stitching",
+            "open_dates": [d[0].isoformat() for d in calendar],
             "range_start": start.isoformat(),
             "range_end": end.isoformat(),
             "price": "raw_price * cumulative_adj_factor / first_valid_factor",

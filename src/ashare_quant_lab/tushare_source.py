@@ -102,7 +102,9 @@ class TushareClient:
             raise SourceError("invalid Tushare JSON response") from exc
         if not isinstance(payload, dict) or payload.get("code") != 0:
             # Do not expose upstream error text: it may contain request body or token.
-            raise SourceError(f"Tushare API failed (code={payload.get('code') if isinstance(payload, dict) else '?'})")
+            code = payload.get("code") if isinstance(payload, dict) else None
+            code = code if type(code) is int else "invalid"
+            raise SourceError(f"Tushare API failed (code={code})")
         data = payload.get("data")
         if not isinstance(data, dict):
             raise SourceError("Tushare response missing data")

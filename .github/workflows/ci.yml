@@ -28,3 +28,21 @@ jobs:
         run: python scripts/package_tsp_extension.py
       - name: Verify JavaScript extension syntax
         run: node --check integrations/tsp/frontend/extension.mjs
+  native-qlib:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install official Qlib and compatible recorder
+        run: python -m pip install -e '.[qlib]'
+      - name: Check paired denominator and named index regressions
+        run: python -m unittest discover -s tests -p test_research_evaluation.py -v
+      - name: Fetch matching official converter
+        run: git clone --depth 1 --branch v0.9.7 https://github.com/microsoft/qlib.git "$RUNNER_TEMP/qlib-source"
+      - name: Synthetic native end-to-end (no credentials, no real research claim)
+        env:
+          MPLCONFIGDIR: ${{ runner.temp }}/matplotlib
+        run: python scripts/native_qlib_smoke.py --root "$RUNNER_TEMP/aql-synthetic" --qlib-repo "$RUNNER_TEMP/qlib-source"

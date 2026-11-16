@@ -27,7 +27,7 @@ def build_parser() -> argparse.ArgumentParser:
     probe.add_argument("--start", required=True)
     probe.add_argument("--end", required=True)
 
-    source = commands.add_parser("check-source", help="Live Tushare trade-calendar permission probe")
+    source = commands.add_parser("check-source", help="Live Tushare three-API coverage and unit probe")
     source.add_argument("--start", default="20261001")
     source.add_argument("--end", default="20261116")
 
@@ -47,6 +47,7 @@ def build_parser() -> argparse.ArgumentParser:
     export.add_argument("--start", required=True)
     export.add_argument("--end", required=True)
     export.add_argument("--output-dir", type=Path, required=True)
+    export.add_argument("--capture-id", help="Pin a complete full-range capture; default latest eligible")
     export.add_argument("--min-history", type=int, default=60)
 
     convert = commands.add_parser("dump-qlib", help="Convert immutable Parquet using Qlib's official dump_bin.py")
@@ -72,15 +73,17 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command == "status":
             result = {
                 "package": "a-share-quant-lab", "version": __version__,
-                "stage": "adapter-implementation_not_live_validated",
+                "stage": "retrospective-research-runner",
+                "local_run_checked": False,
+                "evidence_document": "docs/WP-AQL-FIRST-REAL-RESEARCH-01-RESULTS.md",
                 "implemented_code": [
                     "tushare-duckdb-capture", "immutable-parquet-snapshot",
                     "official-qlib-binary-conversion", "qlib-ranking-study-runner",
                     "duckdb-backed-tsp-historical-gateway", "tsp-research-page",
                 ],
                 "not_verified": [
-                    "tushare-gateway-connectivity", "historical-PIT",
-                    "qlib-model-execution", "tsp-mounted-page", "trading-returns",
+                    "historical-PIT", "independent-OOS",
+                    "tsp-mounted-page", "trading-returns",
                 ],
                 "live_trading": "NOT_SUPPORTED",
             }
@@ -96,16 +99,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                 start=args.start, end=args.end,
             )
         elif args.command == "check-source":
-            from .tushare_source import TushareClient
-            rows = TushareClient().query(
-                "trade_cal", exchange="SSE", start_date=args.start, end_date=args.end
-            )
-            result = {
-                "source": "tushare-http", "api": "trade_cal",
-                "rows": len(rows),
-                "sample_dates": [str(r.get("cal_date")) for r in rows[:3]],
-                "dataset_qualified": False,
-            }
+            from .source_audit import audit_source
+            from .tushare_source import parse_day
+            result = audit_source(parse_day(args.start), parse_day(args.end))
+            print(json.dumps(result, ensure_ascii=False, sort_keys=True))
+            return 0 if result["status"] == "RECEIVED_AND_DIMENSIONALLY_VALIDATED_NOT_PIT" else 2
         elif args.command == "market-status":
             from .market_store import latest_capture_status
             result = latest_capture_status(args.db_path)
@@ -125,7 +123,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             result = export_market_parquet(
                 args.db_path, load_symbols(args.symbols_file),
                 parse_day(args.start), parse_day(args.end), args.output_dir,
-                min_history=args.min_history,
+                min_history=args.min_history, capture_id=args.capture_id,
             )
         elif args.command == "dump-qlib":
             from .qlib_dump import dump_parquet_using_official_qlib
