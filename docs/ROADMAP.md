@@ -1,28 +1,26 @@
-# Current project state and next acceptance gates
+# Current status and qualification gates — 2026-11-16
 
-As of 2026-11-16. Update this record based on real code, actual datasets and observed executions, not a plan alone.
+Scope authorized: implement Tushare data integration, Qlib first-selection study and TSP display boundary. A tool-accessible runtime with the user's local TSP/Qlib instance is NOT available, and external outbound DNS in the development sandbox failed. No token was committed to this public repository.
 
-| Gate | Status | Evidence / remaining work |
+| Gate | Code status | Actually verified |
 | --- | --- | --- |
-| Repository bootstrap | IMPLEMENTED, awaiting GitHub CI observation | Python package, CLI, schema validator, docs, stdlib tests |
-| Local Qlib data probe | CODE PRESENT, NOT RUN ON USER DATA | Optional pyqlib and existing local data path required |
-| Historical A-share PIT data | NOT VERIFIED | Provider access, dynamic universe, timestamps, corporate actions |
-| Qlib Alpha158 / LightGBM | NOT IMPLEMENTED | One reproducible 10-day ranking experiment against simple baseline |
-| Buy/sell timing research | NOT IMPLEMENTED | Entry and exit decision effects with common execution/cost basis |
-| TSP extension integration | NOT IMPLEMENTED | Read-only artifact display, reuse existing stock preview |
-| Natural prospective monitoring | NOT STARTED | Frozen result identity and non-lookahead daily observation |
-| Real trading | NOT AUTHORIZED | No brokerage integration in scope |
+| Python package and artifact contract | Present | GitHub stdlib tests pass |
+| Tushare client, date and units | Present | Synthetic tests pass; user's live proxy not reachable here |
+| TSP data-source daily/adj-factor | Present | No running TSP, no actual market pages filled |
+| Qlib retrospective data export | Present | Synthetic CSV tests only |
+| Official Qlib CSV-to-binary converter | Wrapper present | Not run on real source data |
+| Alpha158+LightGBM vs momentum | Research runner present | No actual Qlib training or RankIC output |
+| TSP full extension package | Extension + packaging present | No installed/browser-verified extension |
+| Manual GitHub study workflow | Workflow_dispatch only | Not run with GitHub Actions secret |
+| PIT, prospective, economic Alpha | Not qualified | No real execution account evidence |
+| Broker order execution | Not implemented | Not authorized |
 
-## Next work in dependency order
+## Next gates
 
-1. Confirm installed Qlib version/provider path and run the local-data probe on a real stock/time range; independently check Tushare historical permission and original source coverage. No credential is committed.
-2. Define symbol/date/corporate-action/PIT mapping; generate one dated, immutable data snapshot and coverage report. If historical point-in-time proof is missing, explicitly label exploratory results.
-3. Implement one Qlib 10-trading-day ranking study against a transparent 20-day momentum baseline with matching universe and time conventions; report OOS forecast metrics and actual paired economics, including failures.
-4. Only after adequate selection evidence, isolate entry and exit rules to measure their incremental net effect.
-5. Then implement TSP extension reader, stock preview binding and research card. Avoid a premature second backtesting interface.
-6. Evaluate whether a versioned result adapter to MRA improves decision/execution evidence; do not merge projects by default.
+1. Confirm the actual proxy permissions and selected Tushare endpoints with a secret-backed source check in a networked runtime.
+2. Prove daily price/volume/amount units and discrete vs cumulative adjustment semantics on real corporate-action dates; inspect missing rows and API limits.
+3. Generate a genuine local source snapshot, run official Qlib dump_bin and first Alpha158 + LightGBM vs momentum study. Record original artifacts, sample sizes and negative outcomes. Still label historical frozen cohort as retrospective only.
+4. In the actual TSP host, install the YAML source and read-only extension and verify stock K-line plus the ranking page after an actual research report exists.
+5. Before any trading claims, replace static-cohort selection with qualified historical point-in-time membership, reconcile dividends, constraints, fees, actual order feasibility and run an audited single-authority comparison.
 
-## External baseline references
-- Qlib: https://github.com/microsoft/qlib
-- TSP: https://github.com/shy3130/tick-stock-panel
-- MRA: https://github.com/yuan2go/market-regime-alpha
+See [runbook](RUN-TUSHARE-QLIB.md). No automatic live trading or GitHub workflow scheduling.

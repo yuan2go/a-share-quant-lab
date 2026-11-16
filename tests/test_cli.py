@@ -10,14 +10,14 @@ from test_contracts import example_batch
 
 
 class CLITests(unittest.TestCase):
-    def test_status_reports_bootstrap_only(self):
+    def test_status_reports_implementation_not_live_validation(self):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             status = main(["status"])
         self.assertEqual(status, 0)
         report = json.loads(out.getvalue())
-        self.assertEqual(report["stage"], "bootstrap")
-        self.assertIn("model-training", report["not_implemented"])
+        self.assertEqual(report["stage"], "adapter-implementation_not_live_validated")
+        self.assertIn("qlib-model-execution", report["not_verified"])
 
     def test_artifact_validation_reports_count(self):
         with tempfile.TemporaryDirectory() as directory:

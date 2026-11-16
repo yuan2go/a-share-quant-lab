@@ -1,49 +1,31 @@
-# Architecture and responsibility boundaries
+# Architecture and actual boundary — 2026-11-16
 
-Status: INITIAL DESIGN. Verified implementation is limited to the CLI, schema validator and local Qlib data probe.
+This repository now implements **code**, not a known running investment environment:
 
-## Components and ownership
+- Tushare-compatible HTTPS client, local TSP historical-data gateway and unit/factor normalization.
+- CSV export for an immutable retrospective Qlib snapshot, wrapper around official Qlib dump_bin and an Alpha158/LightGBM ranking research runner.
+- TSP backend/frontend extension package reading versioned research output, with a CLI that publishes it to an explicitly supplied local TSP data directory.
 
-1. **Data source & immutable snapshots (planned):** licensed A-share data from a permitted provider, historical listings/delistings, symbol mapping, availability times, corporate actions and trade restrictions. Qlib data ingestion will be a dedicated adapter, not page-side fetching.
-2. **Qlib research process (planned):** Qlib factor/model tooling, chronological experiments, prediction batches and research backtests. Can run locally or as an isolated worker, never in the TSP HTTP request thread.
-3. **A-Share Quant Lab (partially implemented):** user research definitions, explicit prediction-batch contract, point-in-time and quality qualifications, stock selection, buy/hold/sell/no-trade research and evidence review. Today only contract validation and local data-read smoke test exist.
-4. **TSP (not yet integrated):** React dashboard and stock preview. Prefer an isolated TSP backend/frontend extension package using documented extension hooks and read-only results APIs; do not copy TSP core, make it a source of training truth, or install Qlib in its main web worker by default.
-5. **MRA (out of scope):** existing independent execution/evidence research. A future integration may import versioned artifacts only after proving extra utility; it must not mutate its runtime or imply live-trading authorization.
+**Actual user Tushare permissions, stock data quality, Qlib fitting, TSP installation and browser display have not been verified.** No net-profit backtest, open broker connection or real trade.
 
-        External historical data
-                  |
-          source snapshot + PIT
-                  |
-          Qlib experiments
-                  |
-        versioned research artifact
-                  |
-          read-only TSP adapter
-                  |
-          portfolio research UI
+## Runtime responsibilities
 
-## One economic authority per comparison
+1. Data source and immutable snapshots: pull only authorized Tushare data. Preserve capture time, source, range, SHA and missing-data evidence. Not all historical data are proven available at the stated information timestamp.
+2. Independent Qlib process: factor construction, LightGBM training, chronological and purged label segments, research ranking and baseline comparison. This process is NOT started by a TSP Web request.
+3. Our project: source adapter, cohort definition, research schema, result qualification, timestamp/status and reporting.
+4. Optional TSP host: selected stock daily-K and adjustment data via its existing data-routing mechanism; separate read-only Qlib research page via the documented extension mechanism. Does NOT replace native TSP strategy/backtest engine.
+5. MRA: separate existing system, untouched.
 
-Qlib and TSP each have backtesting facilities. A performance comparison must use **one audited execution/cost basis** with a common date range, source snapshot, dynamic universe, portfolio construction and feasible order rules. Displaying unrelated net-value curves side by side is not a valid comparative study.
+## Financial meaning and source constraints
 
-A prediction result is not a trading instruction. The lab must explicitly translate forecast -> candidate -> eligibility -> target portfolio -> feasible orders -> fills -> net equity, recording any no-op, rejection and failed fill.
+Tushare daily volume is in 100-share lots and amount is in thousand CNY. The TSP app expects shares and CNY, and its ex_factor is an individual event ratio rather than Tushare's cumulative adj_factor. The adapter converts both; missing pre-window factor history is a hard error except a full-from-1990 historical baseline.
 
-## Data and time
+The Qlib train/test target from T+1 close to T+11 close is a historical label, **not a fillable profit account**. Static cohort chosen today may exhibit survivorship/selection bias. A positive RankIC result would only demonstrate retrospective ranking evidence. To claim economic gain, first implement equivalent realistic orders/costs, company actions, historical dynamic universe, and honest held-out/prospective testing.
 
-- Qlib symbols (for example SH600519) and market symbols (600519.SH) require an explicit, versioned mapping; this is not yet implemented.
-- Raw execution prices and adjusted/total-return signals are not interchangeable; define corporate action accounting and cash dividend treatment before economic comparisons.
-- Record event/effective time, public availability time, snapshot capture time, data revision, model version, training/test spans, signal cutoff and publication timestamp.
-- Never use current security membership, status or financial revision as a proxy for an unavailable historical value.
-- Research labels must be future values isolated from the feature/signal pipeline, with training–evaluation boundary protection.
+## Upstream references
 
-## Interface direction
+- Qlib PyPI optional dependency pyqlib==0.9.7, official matching source converter from tag v0.9.7.
+- TSP v0.3.37 backend extension API v1 and Page Pack SDK v1. Never package Qlib's compiled ML dependencies into TSP's web-worker ZIP.
+- User-provided compatible Tushare HTTPS POST endpoint. Real permissions unknown.
 
-A V1 machine-readable prediction format is specified in [RESEARCH-ARTIFACT.md](RESEARCH-ARTIFACT.md). It represents numeric model ranking scores, not calibrated probabilities or executable recommendations.
-
-Do not add a new persistence database, scheduler, LLM agent, duplicate backtest engine, browser implementation or brokerage interface during bootstrap without a demonstrated need.
-
-### Upstream reference versions (not integrated or tested here)
-- Microsoft Qlib upstream GitHub tag v0.9.8 (2026-10-08) is source-only; the optional, separately installed PyPI dependency is pinned to available `pyqlib==0.9.7`. The user’s local Qlib revision has not been checked.
-- TSP upstream release v0.3.37 (2026-11-12); extension-package mechanism is documented upstream. Its current runtime behavior is not verified by this repository.
-
-Review upstream changes and installed versions when starting real integration, not merely these snapshot references.
+See [runbook](RUN-TUSHARE-QLIB.md) and [status](ROADMAP.md).

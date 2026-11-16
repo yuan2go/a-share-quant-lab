@@ -1,4 +1,4 @@
-name: Python bootstrap validation
+name: Python bootstrap and adapter validation
 
 on:
   push:
@@ -15,10 +15,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
       - name: Install core package (no market data or ML dependencies)
         run: python -m pip install -e .
-      - name: Run contract and CLI tests
+      - name: Run relevant contract/adapter tests
         run: python -m unittest discover -s tests -v
-      - name: Check CLI entrypoint
+      - name: Validate research CLI entrypoint
         run: aql status
+      - name: Compile Python implementation and package builder
+        run: python -m compileall -q src scripts
+      - name: Build TSP extension ZIP
+        run: python scripts/package_tsp_extension.py
+      - name: Check TSP frontend JS syntax
+        run: node --check integrations/tsp/frontend/extension.mjs

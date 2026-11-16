@@ -1,0 +1,41 @@
+# Copy into TSP's data/data_sources/tushare_aql.yaml and reload.
+# Works when TSP and the aql gateway run on the same host network.
+# Docker TSP users must use a private container network or deliberately
+# configure host.docker.internal plus firewall rules. Do not expose the gateway.
+# Daily/adj_factor ONLY, not realtime/minute/financial/index/ETF data.
+name: tushare_aql
+display_name: "Tushare Proxy — A-share Daily (AQL)"
+auth:
+  type: none
+datasets:
+  daily:
+    url: http://127.0.0.1:8765/daily
+    method: POST
+    batch: 5
+    rpm: 20
+    timeout: 120
+    response_path: data
+    field_map:
+      ts_code: symbol
+      trade_date: date
+      open: open
+      high: high
+      low: low
+      close: close
+      vol: volume
+      amt: amount
+    transforms:
+      date: "parse_date(value, '%Y-%m-%d')"
+  adj_factor:
+    url: http://127.0.0.1:8765/adj_factor
+    method: POST
+    batch: 5
+    rpm: 20
+    timeout: 120
+    response_path: data
+    field_map:
+      ts_code: symbol
+      trade_date: trade_date
+      factor: ex_factor
+    transforms:
+      trade_date: "parse_date(value, '%Y-%m-%d')"
