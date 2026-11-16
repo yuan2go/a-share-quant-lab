@@ -1,0 +1,24 @@
+name: Python bootstrap validation
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install core package (no market data or ML dependencies)
+        run: python -m pip install -e .
+      - name: Run contract and CLI tests
+        run: python -m unittest discover -s tests -v
+      - name: Check CLI entrypoint
+        run: aql status

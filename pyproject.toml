@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "a-share-quant-lab"
+version = "0.1.0"
+description = "An evidence-first A-share stock-selection and trade-timing research lab"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "yuan2go" }]
+dependencies = []
+
+[project.optional-dependencies]
+# Isolated research environment only. Not installed by default in the TSP host.
+# Version selected from the 2026-10-08 Qlib upstream v0.9.8 release;
+# compatibility with the user's local environment remains to be verified.
+qlib = ["pyqlib==0.9.8"]
+
+[project.scripts]
+aql = "ashare_quant_lab.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

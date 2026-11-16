@@ -1,0 +1,28 @@
+# Environments and local settings
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+dist/
+# Research data, results and credentials are local by default
+data/
+artifacts/
+outputs/
+reports/generated/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+.DS_Store
+.idea/
+.vscode/
