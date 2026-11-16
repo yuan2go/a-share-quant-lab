@@ -43,7 +43,7 @@ A V1 machine-readable prediction format is specified in [RESEARCH-ARTIFACT.md](R
 Do not add a new persistence database, scheduler, LLM agent, duplicate backtest engine, browser implementation or brokerage interface during bootstrap without a demonstrated need.
 
 ### Upstream reference versions (not integrated or tested here)
-- Microsoft Qlib upstream release v0.9.8 (2026-10-08); optional local Python dependency.
+- Microsoft Qlib upstream GitHub tag v0.9.8 (2026-10-08) is source-only; the optional, separately installed PyPI dependency is pinned to available `pyqlib==0.9.7`. The user’s local Qlib revision has not been checked.
 - TSP upstream release v0.3.37 (2026-11-12); extension-package mechanism is documented upstream. Its current runtime behavior is not verified by this repository.
 
 Review upstream changes and installed versions when starting real integration, not merely these snapshot references.
