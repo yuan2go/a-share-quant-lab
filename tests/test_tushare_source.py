@@ -1,4 +1,5 @@
 import json
+import gzip
 import unittest
 from datetime import date
 from unittest.mock import patch
@@ -28,6 +29,18 @@ class FakeSource:
 
 
 class NormalizationTests(unittest.TestCase):
+    def test_core_client_negotiates_and_decodes_gzip(self):
+        payload={'code':0,'data':{'fields':['cal_date','is_open'],'items':[['20261116',1]]}}
+        class Response(BytesIO):
+            status=200
+            headers={'Content-Encoding':'gzip'}
+        def open_request(request,**kwargs):
+            self.assertEqual(request.get_header('Accept-encoding'),'gzip')
+            return Response(gzip.compress(json.dumps(payload).encode()))
+        with patch('urllib.request.urlopen',side_effect=open_request):
+            rows=TushareClient(token='synthetic').query('trade_cal',start_date='20261116')
+        self.assertEqual(rows,[{'cal_date':'20261116','is_open':1}])
+
     def test_daily_units_ohlc_and_dates(self):
         data = daily_rows(FakeSource(), "000001.SZ", date(2026, 11, 12), date(2026, 11, 13))
         self.assertEqual(data[0]["trade_date"], "2026-11-12")

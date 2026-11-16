@@ -50,6 +50,7 @@ def handle_request(conn, path: str, body: object) -> dict:
         "data": rows,
         "source": "aql-duckdb-complete-captures",
         "asset_type": "stock",
+        "units": {"vol": "hands_100_shares", "amt": "CNY", "factor": "single_event_ratio"},
         "historical_PIT_qualified": False,
     }
 

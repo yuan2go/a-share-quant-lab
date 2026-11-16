@@ -1,16 +1,17 @@
-# TSP 接入边界（当前非已部署系统）
+# TSP 接入边界
 
-本仓库**没有**复制、Fork、安装或启动 TSP。TSP v0.3.37 的公开扩展协议提供页面/后端接口，本仓库目前有对应扩展源码及打包脚本，但用户运行实例与浏览器链路尚未验证。
+已按追加授权启动官方 TSP v0.3.37 独立实例，没有修改上游内核，没有改写用户原有 TSP/MRA 目录。实际数据、权限阻断和外置盘启动命令见[本地运行记录](../../docs/TSP-REAL-DATA-20261117.md)。
 
-两种接入职责：
+| 组件 | 作用 |
+| --- | --- |
+| `tushare_aql.yaml` | 可选只读AQL DuckDB网关，仅stock daily/adj_factor。TSP量手/额元，AQL库存股/元。写库与读网关不能并行。 |
+| `tushare_source/` | 官方源码插件，连接授权HTTPS网关；只声明实际验证的daily/adj_factor/financial，TSP自行保存展示Parquet和24小时私有响应缓存。 |
+| `extension.yaml`、`backend/`、`frontend/` | 展示已发布历史研究JSON，显示截止时钟与阴性结果，打开原生个股K线；无自动训练或交易。 |
 
-| 组件 | 路径 | 作用 |
-| --- | --- | --- |
-| 历史数据源 YAML | tushare_aql.yaml | TSP 调用本仓库只读 DuckDB 网关，按 TSP 格式提供 stock daily/adj_factor；不提供分钟、实时、ETF、指数、财务 |
-| 独立研究扩展 | extension.yaml、backend/、frontend/ | 读取已发布历史研究 JSON，显示排名与截止时钟、调用 TSP 原生个股详情；无自动 BUY/SELL 或 Qlib 训练 |
+`python scripts/package_tsp_source.py /外置盘路径/aql-tushare-source.zip` 生成不含行情/凭据的安装包，通过官方数据源设置安装。凭据只从进程环境/本机密钥读取，URL不得携带凭据。
 
-首先在本项目完成真实数据采集，并停止 DuckDB 的独立写进程，才能启动 TSP 数据网关。TSP 页面同步后须核对原价、数据来源及因子事件；查询到某支股票不等于全市场数据合格。运行中的 TSP 与研究数据仍是两套独立存储，不直接写对方数据库。
+单股票RT可查不等于TSP全市场实时可用：通配批量实测403（缺批量权限）；历史/实时分钟403；五档没有已验证授权接口。用户已确认保留受阻状态。免费来源仅试取样本，尚未接入此插件。
 
-命令、部署和安全细节仅维护在 [统一运行手册](../../docs/RUN-TUSHARE-QLIB.md)。首次真实Qlib实验已执行，整体未改善动量（见[结果](../../docs/WP-AQL-FIRST-REAL-RESEARCH-01-RESULTS.md)）。本轮未部署TSP；暂不因已有UI而推进买卖点或增加训练/回测系统。
+展示缓存不是历史PIT数据库。原Qlib阴性实验独立保留，页面有数据不证明预测改善或交易盈利。
 
-上游扩展协议：[TSP v0.3.37 extension-packages.md](https://github.com/shy3130/tick-stock-panel/blob/v0.3.37/docs/extension-packages.md)。
+上游协议：[源码插件](https://github.com/shy3130/tick-stock-panel/blob/v0.3.37/docs/plugin-development.md)、[研究扩展](https://github.com/shy3130/tick-stock-panel/blob/v0.3.37/docs/extension-packages.md)。

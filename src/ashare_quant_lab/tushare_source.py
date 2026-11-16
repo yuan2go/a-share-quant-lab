@@ -7,6 +7,8 @@ TSP ex_factor: single-event ratio, unlike Tushare cumulative adj_factor.
 from __future__ import annotations
 
 import json
+import gzip
+import io
 import math
 import os
 import re
@@ -84,7 +86,7 @@ class TushareClient:
         request = urllib.request.Request(
             self.url,
             data=json.dumps(request_body, separators=(",", ":")).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "Accept-Encoding": "gzip"},
             method="POST",
         )
         try:
@@ -92,7 +94,9 @@ class TushareClient:
                 if response.status != 200:
                     raise SourceError(f"Tushare HTTP status {response.status}")
                 body = response.read(12_000_001)
-        except (urllib.error.URLError, TimeoutError, OSError) as exc:
+                if response.headers.get("Content-Encoding", "").lower() == "gzip":
+                    body = gzip.GzipFile(fileobj=io.BytesIO(body)).read(12_000_001)
+        except (urllib.error.URLError, TimeoutError, OSError, EOFError) as exc:
             raise SourceError(f"Tushare transport error ({type(exc).__name__})") from None
         if len(body) > 12_000_000:
             raise SourceError("Tushare response too large")
