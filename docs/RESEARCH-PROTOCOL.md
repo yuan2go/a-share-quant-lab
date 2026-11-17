@@ -45,7 +45,7 @@ Codex 每次复跑仍必须核对：源响应/因子单位、行情覆盖；Qlib
 
 ## 方向预测实验 WP-AQL-DIRECTION-FORECAST-01
 
-2026-11-17 在读取本实验评价结果前冻结，基线 main `62a1c13`。这是新的方向分类假设；首轮排名研究已完成、整体阴性，历史配置/模型/快照/报告不修改。本节同时作为本任务设计和实施计划，避免另建重复协议。官方 [LGBModel](https://github.com/microsoft/qlib/blob/v0.9.7/qlib/contrib/model/gbdt.py) 提供 binary 训练/概率输出；[Alpha158](https://github.com/microsoft/qlib/blob/v0.9.7/qlib/contrib/data/handler.py) 的默认截面标签归一化必须显式替换。
+2026-11-17 在读取本实验评价结果前冻结，基线 main `62a1c13`、冻结提交`7dc5c02`。现已完成真实滚动验证及独立最新日推理，整体无增益，见[方向结果](WP-AQL-DIRECTION-FORECAST-01-RESULTS.md)。这是新的方向分类假设；首轮排名研究已完成、整体阴性，历史配置/模型/快照/报告不修改。本节同时作为本任务设计和实施计划，避免另建重复协议。官方 [LGBModel](https://github.com/microsoft/qlib/blob/v0.9.7/qlib/contrib/model/gbdt.py) 提供 binary 训练/概率输出；[Alpha158](https://github.com/microsoft/qlib/blob/v0.9.7/qlib/contrib/data/handler.py) 的默认截面标签归一化必须显式替换。
 
 ### 目标、数据与实现边界
 
