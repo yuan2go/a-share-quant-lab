@@ -7,7 +7,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from .direction_data import (EVENT, digest, initialize, load_native, write_json)
-from .direction_study import predict_frame
+from .direction_study import code_identity, predict_frame
 from .research_evaluation import StudyError
 
 
@@ -93,7 +93,7 @@ def infer_direction(provider, manifest_path, model_directory, record_sha256, clo
                 'start_date': str(future_dates[0].date()) if len(future_dates) >= 1 else None,
                 'end_date': str(future_dates[10].date()) if len(future_dates) >= 11 else None}
     payload = {'schema_version': 1, 'work_package': record['work_package'], 'kind': 'DIRECTION_PREDICTION',
-               'status': status, 'data_kind': manifest.get('data_kind', 'REAL_SOURCE_RETROSPECTIVE'),
+               'inference_code': code_identity(), 'status': status, 'data_kind': manifest.get('data_kind', 'REAL_SOURCE_RETROSPECTIVE'),
                'generated_at': now.isoformat(), 'data_through': str(signal.date()),
                'expected_latest_completed_session': str(expected.date()), 'prediction_interval': interval,
                'up_event': EVENT, 'model_id': record['model_sha256'], 'model_record_sha256': record_sha256,
@@ -137,7 +137,7 @@ def review_direction(prediction_path, provider, manifest_path, output):
         raise StudyError('original signal session absent from review calendar')
     pos = cal.get_loc(signal)
     result = {'kind': 'DIRECTION_MATURITY_REVIEW', 'prediction_sha256': digest(prediction_path),
-              'model_id': batch['model_id'], 'original_inference_snapshot_id': batch['inference_snapshot_id'],
+              'review_code': code_identity(), 'model_id': batch['model_id'], 'original_inference_snapshot_id': batch['inference_snapshot_id'],
               'review_snapshot_id': digest(manifest_path), 'reviewed_at': datetime.now(timezone.utc).isoformat(),
               'data_through': str(cal[-1].date()), 'labels': [],
               'revision_qualification': 'new capture may revise adjusted history; original forecast is preserved'}

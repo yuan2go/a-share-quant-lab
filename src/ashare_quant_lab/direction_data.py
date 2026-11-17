@@ -154,6 +154,11 @@ def load_native(manifest, *, with_labels):
                if with_labels else None)
     if with_labels and not np.allclose(raw.loc[native_keys, 'label'].iloc[:, 0], returns.reindex(native_keys), equal_nan=True, rtol=2e-5, atol=2e-7):
         raise StudyError('native returns differ from complete calendar shift')
+    if with_labels:
+        native_labels = direction_labels(raw.loc[native_keys, 'label'].iloc[:, 0])
+        independent_labels = direction_labels(returns.reindex(native_keys))
+        if not np.array_equal(native_labels.to_numpy(), independent_labels.to_numpy(), equal_nan=True):
+            raise StudyError('native binary classes differ from independent calendar target')
     audit = {'feature_count': len(spec['names']), 'lookback_sessions': spec['lookback'],
              'calendar_sessions': len(cal), 'expected_pairs': len(index), 'eligible_pairs': int(quality.sum()),
              'current_bar_missing_pairs': int((~valid).sum()),
@@ -161,6 +166,7 @@ def load_native(manifest, *, with_labels):
              'nonfinite_feature_values': int(raw['feature'].isna().sum().sum()),
              'momentum_audit': 'MATCH_COMPLETE_CALENDAR_SHIFT',
              'label_audit_native_pairs': len(native_keys) if with_labels else 0,
+             'binary_class_audit': 'EXACT_MATCH' if with_labels else 'NOT_LOADED',
              'label_audit': 'MATCH_COMPLETE_CALENDAR_SHIFT' if with_labels else 'NOT_LOADED'}
     return cal, raw, quality, native_momentum, returns, spec, audit
 
