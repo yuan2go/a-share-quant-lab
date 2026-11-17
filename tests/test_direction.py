@@ -66,6 +66,22 @@ class DirectionTests(unittest.TestCase):
         self.assertIsNone(one['balanced_accuracy'])
         self.assertIsNotNone(one['log_loss'])
 
+    def test_unavailable_calibration_is_insufficient_evidence_and_preserves_raw_coverage(self):
+        import numpy as np
+        import pandas as pd
+        cal = pd.bdate_range('2024-01-02', periods=60)
+        idx = pd.MultiIndex.from_product([cal, ['SH600519']], names=['datetime','instrument'])
+        rows = pd.DataFrame({'raw':.5, 'model':np.nan, 'b0':.5, 'b1':.5,
+                             'y':[0.,1.]*30, 'return':[-.01,.01]*30,
+                             'reason':'CALIBRATION_UNAVAILABLE'},index=idx)
+        result, daily = evaluate(rows, cal, self.config())
+        self.assertEqual(result['research_conclusion'],'INSUFFICIENT_EVIDENCE')
+        self.assertEqual(result['pairs'],0)
+        self.assertEqual(result['coverage']['output_pairs']['raw'],60)
+        self.assertEqual(result['coverage']['output_pairs']['model'],0)
+        self.assertEqual(result['own_output_metrics']['raw']['pairs'],60)
+        self.assertEqual(len(daily),60)
+
     def test_date_equal_loss_does_not_overweight_large_cross_sections(self):
         import numpy as np
         import pandas as pd

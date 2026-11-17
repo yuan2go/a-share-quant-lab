@@ -113,7 +113,8 @@ def evaluate(observations, calendar, config):
     mean_good = all(v is not None and v < 0 for v in summary['model_minus_baseline'].values())
     interval_good = all(x['upper'] is not None and x['upper'] < 0 for x in intervals.values())
     stable = all(all(v is not None and v < 0 for v in year['model_minus_baseline'].values()) for year in summary['by_year'].values())
-    summary['research_conclusion'] = ('LIMITED_RETROSPECTIVE_GAIN_NOT_TRADING_QUALIFIED' if mean_good and interval_good and stable
-                                       else 'INSUFFICIENT_EVIDENCE' if mean_good else 'NO_INCREMENTAL_GAIN')
+    summary['research_conclusion'] = ('INSUFFICIENT_EVIDENCE' if not summary['pairs'] else
+                                      'LIMITED_RETROSPECTIVE_GAIN_NOT_TRADING_QUALIFIED' if mean_good and interval_good and stable
+                                      else 'INSUFFICIENT_EVIDENCE' if mean_good else 'NO_INCREMENTAL_GAIN')
     summary['calibration_qualification'] = 'TEMPORALLY_SEPARATE_FIT_ONLY; reliability not certified by Brier or fitted status'
     return summary, daily

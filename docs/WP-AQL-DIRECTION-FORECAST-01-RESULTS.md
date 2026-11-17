@@ -64,7 +64,7 @@ Alpha158 → 明确的BinaryLabel/DropnaLabel学习处理 → 官方LGBModel(bin
 
 首次正式运行`real-01/study`与`real-01/study-final`的19,950行观察表完全一致，34个月模型（33个评价月及10月独立模型）文本逐字节一致；首评价月在每次研究内还独立重复训练，模型字节/校准段概率一致。最新入口独立加载可信model-record SHA、模型文本SHA、binary objective及158列定义，绝不反序列化陌生pickle。首次与复验的最新概率也一致。
 
-本地57项测试PASS；官方转换/Alpha158/原生binary完整合成链PASS并明确标记SYNTHETIC_ENGINEERING_ONLY，合成指标没有用于上表。测试覆盖零/正/负/缺失标签、未来标签缺失仍保留推理特征、交易日标签结束隔离、全单类日期、日期等权/时间块复现、各自/共同覆盖、追加复盘不改原预测、模型记录和模型字节篡改拒绝。公开CI以PR最终head为准。
+本地58项测试PASS；官方转换/Alpha158/原生binary完整合成链PASS并明确标记SYNTHETIC_ENGINEERING_ONLY，合成指标没有用于上表。测试覆盖零/正/负/缺失标签、未来标签缺失仍保留推理特征、交易日标签结束隔离、全单类日期、日期等权/时间块复现、各自/共同覆盖、追加复盘不改原预测、模型记录和模型字节篡改拒绝。公开CI以PR最终head为准。
 
 真实研究私有根目录：`/Volumes/DevSSD/Development/Workspace/task-data/WP-AQL-DIRECTION-FORECAST-01/20261117`。`real-01/study-final`保存完整历史评价；`real-01/reproduction-verification.json`保存真实复现核对。`synthetic-native-final`为独立合成工程证据。训练依赖：Qlib0.9.7、LightGBM4.7.0、MLflow2.22.5、DuckDB1.5.6、PyArrow19.0.1、pandas2.3.3、NumPy2.5.5、scikit-learn1.9.1。
 
@@ -96,7 +96,7 @@ Alpha158 → 明确的BinaryLabel/DropnaLabel学习处理 → 官方LGBModel(bin
 
 | 范围 | 结论 | 限制 |
 | --- | --- | --- |
-| 独立应用/原生Qlib分类链 | PASS，可合并工程实现 | 本地57项、真实滚动/独立推理、合成CI链；PR状态以最终head检查为准 |
+| 独立应用/原生Qlib分类链 | PASS，可合并工程实现 | 本地58项、真实滚动/独立推理、合成CI链；PR状态以最终head检查为准 |
 | 真实滚动对照 | COMPLETE，整体无增益 | 固定当代30股、回顾性、重叠10期，不能宣称真正未见OOS |
 | 最新日推理工程 | PASS，2026-11-17，30/30 | 概率明确RESEARCH_ONLY，无可靠判断或采用价值承诺 |
 | 预测留存/成熟后复盘入口 | PASS工程；当前标签PENDING | 成熟分支单测通过；本次新预测真实成熟复盘尚未到期 |
