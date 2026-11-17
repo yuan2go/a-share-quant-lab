@@ -68,7 +68,7 @@ def main():
             if parse(calendars[0]) != parse(calendars[1]):
                 raise SourceError('source exchange calendars disagree')
             open_dates = [d for d, s in parse(calendars[0]) if s == '1']
-            bound = local.date() if local.hour >= 18 else local.date() - timedelta(days=1)
+            bound = local.date() if local.hour >= 15 else local.date() - timedelta(days=1)
             completed = max(d for d in open_dates if d <= bound)
             write_json(root / 'calendar-clock.json', {'captured_at': now.isoformat(), 'exchanges': 'SSE_SZSE_MATCH',
                        'range_start': start.isoformat(), 'range_end': end.isoformat(),

@@ -86,10 +86,10 @@ class DirectionTests(unittest.TestCase):
         self.assertLess(a['lower'],a['upper'])
 
     def test_latest_operational_clock_and_expiry(self):
-        clock = {'captured_at':'2026-11-17T08:00:00+00:00','exchanges':'SSE_SZSE_MATCH',
+        clock = {'captured_at':'2026-11-17T06:00:00+00:00','exchanges':'SSE_SZSE_MATCH',
                  'range_start':'2026-10-01','range_end':'2026-12-30',
                  'open_dates':['2026-11-13','2026-11-16','2026-11-17','2026-11-18']}
-        now=datetime(2026,11,17,8,30,tzinfo=timezone.utc)
+        now=datetime(2026,11,17,6,30,tzinfo=timezone.utc)
         self.assertEqual(str(expected_session(clock,now)[0].date()),'2026-11-16')
         after=datetime(2026,11,17,11,30,tzinfo=timezone.utc)
         self.assertEqual(str(expected_session(clock,after)[0].date()),'2026-11-17')

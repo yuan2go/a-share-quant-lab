@@ -12,7 +12,7 @@ from .research_evaluation import StudyError
 
 
 def expected_session(clock, now):
-    """18:00 is an operational gate, not proof of historical publication timing."""
+    """A completed exchange session still needs per-stock source completeness checks."""
     import pandas as pd
     local = now.astimezone(ZoneInfo('Asia/Shanghai'))
     fetched = datetime.fromisoformat(clock['captured_at'])
@@ -27,7 +27,7 @@ def expected_session(clock, now):
         raise StudyError('invalid source clock calendar')
     if clock['range_end'] < local.date().isoformat() or clock['range_start'] > (local.date() - timedelta(days=20)).isoformat():
         raise StudyError('source clock must span recent sessions through today')
-    bound = local.date() if local.hour >= 18 else local.date() - timedelta(days=1)
+    bound = local.date() if local.hour >= 15 else local.date() - timedelta(days=1)
     completed = dates[dates <= pd.Timestamp(bound)]
     if not len(completed):
         raise StudyError('no completed source session in clock')
@@ -92,10 +92,16 @@ def infer_direction(provider, manifest_path, model_directory, record_sha256, clo
     interval = {'start_session': 'T+1 close', 'end_session': 'T+11 close', 'holding_periods': 10,
                 'start_date': str(future_dates[0].date()) if len(future_dates) >= 1 else None,
                 'end_date': str(future_dates[10].date()) if len(future_dates) >= 11 else None}
+    local = now.astimezone(ZoneInfo('Asia/Shanghai'))
+    entry = interval['start_date']
+    delayed = entry is not None and (local.date().isoformat() > entry or
+                                     (local.date().isoformat() == entry and local.hour >= 15))
     payload = {'schema_version': 1, 'work_package': record['work_package'], 'kind': 'DIRECTION_PREDICTION',
                'inference_code': code_identity(), 'status': status, 'data_kind': manifest.get('data_kind', 'REAL_SOURCE_RETROSPECTIVE'),
                'generated_at': now.isoformat(), 'data_through': str(signal.date()),
                'expected_latest_completed_session': str(expected.date()), 'prediction_interval': interval,
+               'issuance_status': 'DELAYED_AFTER_TARGET_ENTRY_CLOSE' if delayed else 'ISSUED_BEFORE_TARGET_ENTRY_CLOSE',
+               'forward_performance_status': 'PENDING_NOT_ESTABLISHED',
                'up_event': EVENT, 'model_id': record['model_sha256'], 'model_record_sha256': record_sha256,
                'training_snapshot_id': record['snapshot_id'], 'inference_snapshot_id': digest(manifest_path),
                'snapshot_exported_at': manifest['capture_timestamp'],
