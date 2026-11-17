@@ -152,3 +152,21 @@ class ReviewTests(unittest.TestCase):
             self.assertEqual(review['prediction_sha256'],before)
             self.assertEqual(review['labels'][0]['y'],1)
             self.assertAlmostEqual(review['labels'][0]['return'],.01)
+
+@unittest.skipUnless(importlib.util.find_spec('qlib'), 'requires official Qlib environment')
+class ModelIdentityTests(unittest.TestCase):
+    def test_modified_record_and_model_bytes_fail_before_loading_model(self):
+        from ashare_quant_lab.direction_data import digest
+        from ashare_quant_lab.direction_inference import load_model
+        with tempfile.TemporaryDirectory() as d:
+            directory=Path(d)
+            model=directory/'model.txt';model.write_text('original-model-bytes')
+            record=directory/'model-record.json'
+            write_json(record,{'model_sha256':digest(model),'packages':{'pyqlib':'0.9.7'},'feature_spec':{}})
+            trusted=digest(record)
+            model.write_text('tampered-model-bytes')
+            with self.assertRaisesRegex(StudyError,'model bytes'):
+                load_model(directory,trusted)
+            record.write_text('{}')
+            with self.assertRaisesRegex(StudyError,'explicitly trusted'):
+                load_model(directory,trusted)
