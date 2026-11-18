@@ -42,3 +42,9 @@
 - 完整金融数据资格还需源时点/股票池版本、训练配置与代码版本、标签成熟度、模型/推理身份、成本及真实可成交路径。需在后续研究产物版本中落实，不能通过给 V1 增加文字来冒充已有能力。
 
 失效结果（NO_DATA、FAILED、NOT_QUALIFIED、NO_TRADE）必须和真实无候选结果区分，保留原始失败记录。
+
+## 方向预测产物（独立于排名batch v1）
+
+`infer-direction`输出`kind=DIRECTION_PREDICTION, schema_version=1`。共同元数据包括实际generated_at、data_through、expected_latest_completed_session、T+1/T+11明确日期、严格上涨事件定义、model_id/model_record_sha256、训练分段与标签截止、训练/推理两个snapshot身份、snapshot_exported_at/source_capture_ids、calibration_status及RESEARCH_ONLY采用状态。逐股包含symbol、raw_probability、calibrated_probability、B0/B1概率及数据质量；不可输出时保留null与原因，不伪称0概率或震荡。
+
+模型只加载原生LightGBM文本（binary objective、158列）、显式可信model-record SHA及相同官方特征/处理器定义，不加载任意pickle、不把排名batch转成概率。原预测独占新文件创建；成熟复盘`DIRECTION_MATURITY_REVIEW`为另一个新文件，绑定原预测SHA、原模型、原推理快照与复盘快照，附加成熟/缺失/PENDING标签，原概率不变。文件身份用于本地可复现，不是WORM、历史PIT或交易保证。

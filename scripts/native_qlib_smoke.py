@@ -66,8 +66,23 @@ def main():
     conversion = dump_parquet_using_official_qlib(args.qlib_repo, root / 'parquet', root / 'binary')
     study = run_first_qlib_study(root / 'binary', root / 'parquet/manifest.json',
                                 repo / 'configs/first-study.json', root / 'study')
+    from ashare_quant_lab.direction_study import run_direction_study, predict_frame
+    from ashare_quant_lab.direction_data import digest, load_native
+    from ashare_quant_lab.direction_inference import load_model
+    direction = run_direction_study(root / 'binary', manifest_path,
+                                    repo / 'configs/direction-study.json', root / 'direction')
+    model_dir = Path(direction['latest_model_directory'])
+    model, record = load_model(model_dir, digest(model_dir / 'model-record.json'))
+    cal, features, eligible, momentum, targets, _, audit = load_native(manifest, with_labels=False)
+    assert targets is None and 'label' not in features.columns.get_level_values(0)
+    keys = features.index[(features.index.get_level_values('datetime') == cal[-1]) & eligible.to_numpy()]
+    predicted = predict_frame(model, record, features.loc[keys, ['feature']], momentum)
+    assert len(predicted) == 30 and predicted['model'].notna().all()
+    assert predicted.equals(predict_frame(model, record, features.loc[keys, ['feature']], momentum))
+    direction['label_free_native_inference'] = {'pairs': len(predicted), 'label_audit': audit['label_audit'],
+                                               'repeat': 'IDENTICAL', 'data_kind': 'SYNTHETIC_ENGINEERING_ONLY'}
     report = {'data_kind': 'SYNTHETIC_ENGINEERING_ONLY', 'real_research_accepted': False,
-              'capture': capture, 'export': export, 'conversion': conversion, 'study': study}
+              'capture': capture, 'export': export, 'conversion': conversion, 'study': study, 'direction': direction}
     (root / 'engineering-result.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps({'data_kind': report['data_kind'], 'status': 'PASS', 'root': str(root)}))
 

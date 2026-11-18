@@ -61,6 +61,32 @@ def build_parser() -> argparse.ArgumentParser:
     study.add_argument("--config", type=Path, required=True)
     study.add_argument("--output-dir", type=Path, required=True)
 
+    direction = commands.add_parser("run-direction-study", help="Frozen monthly Qlib binary vs B0/B1")
+    direction.add_argument("--provider-uri", type=Path, required=True)
+    direction.add_argument("--manifest", type=Path, required=True)
+    direction.add_argument("--config", type=Path, default=Path("configs/direction-study.json"))
+    direction.add_argument("--output-dir", type=Path, required=True)
+
+    latest = commands.add_parser("train-direction-latest", help="Frozen schedule latest-month Qlib training")
+    latest.add_argument("--provider-uri", type=Path, required=True)
+    latest.add_argument("--manifest", type=Path, required=True)
+    latest.add_argument("--config", type=Path, default=Path("configs/direction-study.json"))
+    latest.add_argument("--output-dir", type=Path, required=True)
+
+    inference = commands.add_parser("infer-direction", help="Label-free latest direction probabilities")
+    inference.add_argument("--provider-uri", type=Path, required=True)
+    inference.add_argument("--manifest", type=Path, required=True)
+    inference.add_argument("--model-dir", type=Path, required=True)
+    inference.add_argument("--model-record-sha256", required=True, help="Explicit trusted model record hash")
+    inference.add_argument("--calendar-clock", type=Path, required=True)
+    inference.add_argument("--output", type=Path, required=True)
+
+    review = commands.add_parser("review-direction", help="Append maturity labels; preserve original predictions")
+    review.add_argument("--prediction", type=Path, required=True)
+    review.add_argument("--provider-uri", type=Path, required=True)
+    review.add_argument("--manifest", type=Path, required=True)
+    review.add_argument("--output", type=Path, required=True)
+
     publish = commands.add_parser("publish-tsp", help="Publish validated study outputs to a local TSP data directory")
     publish.add_argument("--study-dir", type=Path, required=True)
     publish.add_argument("--tsp-data-dir", type=Path, required=True)
@@ -78,7 +104,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "evidence_document": "docs/WP-AQL-FIRST-REAL-RESEARCH-01-RESULTS.md",
                 "implemented_code": [
                     "tushare-duckdb-capture", "immutable-parquet-snapshot",
-                    "official-qlib-binary-conversion", "qlib-ranking-study-runner",
+                    "official-qlib-binary-conversion", "qlib-ranking-study-runner", "qlib-direction-study-runner",
+                    "label-free-direction-inference", "append-only-direction-review",
                     "duckdb-backed-tsp-historical-gateway", "tsp-research-page",
                 ],
                 "not_verified": [
@@ -135,6 +162,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             result = run_first_qlib_study(
                 args.provider_uri, args.manifest, args.config, args.output_dir,
             )
+        elif args.command == "run-direction-study":
+            from .direction_study import run_direction_study
+            result = run_direction_study(args.provider_uri, args.manifest, args.config, args.output_dir)
+        elif args.command == "train-direction-latest":
+            from .direction_study import train_latest
+            result = train_latest(args.provider_uri, args.manifest, args.config, args.output_dir)
+        elif args.command == "infer-direction":
+            from .direction_inference import infer_direction
+            result = infer_direction(args.provider_uri, args.manifest, args.model_dir,
+                                     args.model_record_sha256, args.calendar_clock, args.output)
+        elif args.command == "review-direction":
+            from .direction_inference import review_direction
+            result = review_direction(args.prediction, args.provider_uri, args.manifest, args.output)
         elif args.command == "publish-tsp":
             from .tsp_publish import publish_to_tsp
             result = publish_to_tsp(args.study_dir, args.tsp_data_dir)

@@ -1,0 +1,17 @@
+{
+  "work_package": "WP-AQL-DIRECTION-FORECAST-01",
+  "evaluation": [
+    "2024-01-03",
+    "2026-09-30"
+  ],
+  "train_sessions": 756,
+  "valid_sessions": 126,
+  "calibration_sessions": 126,
+  "horizon": 10,
+  "update": "monthly",
+  "seed": 23,
+  "bootstrap_block": 20,
+  "bootstrap_replicates": 2000,
+  "epsilon": 1e-06,
+  "threshold": 0.5
+}
