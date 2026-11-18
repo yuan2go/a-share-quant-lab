@@ -75,6 +75,8 @@ def export_market_parquet(
                 capture_id = eligible[0] if eligible else None
             if capture_id not in eligible:
                 raise SourceError("no single complete capture covers the requested range/cohort")
+            capture_started, capture_completed = conn.execute(
+                "SELECT started_at, completed_at FROM captures WHERE capture_id=?", [capture_id]).fetchone()
             calendar = conn.execute(
                 """SELECT cal_date FROM trade_sessions WHERE capture_id=? AND is_open
                    AND cal_date>=? AND cal_date<=? ORDER BY cal_date""",
@@ -136,6 +138,8 @@ def export_market_parquet(
             "source_endpoint": "DuckDB complete captures: daily + adj_factor + trade_cal",
             "database_role": "source_of_truth_local_market_store",
             "source_capture_ids": sorted(capture_ids),
+            "source_capture_started_at": capture_started.isoformat(),
+            "source_capture_completed_at": capture_completed.isoformat(),
             "capture_selection": "single_complete_capture_no_revision_stitching",
             "open_dates": [d[0].isoformat() for d in calendar],
             "range_start": start.isoformat(),

@@ -39,3 +39,31 @@ def publish_to_tsp(study_dir: Path, tsp_data_dir: Path) -> dict:
             if os.path.exists(name):
                 os.unlink(name)
     return {"status": "published_local_files", "run_id": batch["run_id"], "tsp_data_dir": str(root), "tsp_running_verified": False}
+
+
+def publish_direction(summary_path, tsp_data_dir):
+    root = Path(tsp_data_dir).resolve(strict=True) / 'aql'
+    root.mkdir(exist_ok=True)
+    summary = json.loads(summary_path.read_text())
+    if summary.get('kind') != 'DIRECTION_FORWARD_SUMMARY':
+        raise ValueError('expected forward summary')
+    reports = Path(__file__).resolve().parents[2] / 'docs/research'
+    comparison = json.loads((reports/'direction-refit-comparison.json').read_text())
+    old = json.loads((reports/'direction-forecast-20261117-summary.json').read_text())
+    package = summary['latest']['work_package']
+    if package not in (comparison['candidate_work_package'],old['work_package']):
+        raise ValueError('unknown direction experiment')
+    summary['historical'] = dict(original=old['model_adoption'],candidate=comparison['conclusion'],
+                                 candidate_adoption='RESEARCH_ONLY_DO_NOT_ADOPT',
+                                 original_loss=comparison['common']['original']['log_loss'],
+                                 candidate_loss=comparison['common']['model']['log_loss'])
+    with tempfile.NamedTemporaryFile(mode='w',dir=root,delete=False) as stream:
+        temporary = Path(stream.name)
+        try:
+            json.dump(summary,stream,allow_nan=False)
+            stream.flush()
+            os.fsync(stream.fileno())
+            os.replace(temporary,root/'latest-direction.json')
+        finally:
+            temporary.unlink(missing_ok=True)
+    return {'status':'PUBLISHED_DIRECTION','prediction_sha256':summary['latest']['prediction_sha256']}

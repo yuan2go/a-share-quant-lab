@@ -43,7 +43,8 @@ def binary_processor():
 def validate_config(path):
     config = json.loads(Path(path).read_text())
     frozen = json.loads((Path(__file__).resolve().parents[2] / 'configs/direction-study.json').read_text())
-    if config != frozen:
+    candidate = json.loads((Path(__file__).resolve().parents[2] / 'configs/direction-refit.json').read_text())
+    if config not in (frozen, candidate):
         raise StudyError('configuration differs from frozen direction protocol; create a new experiment')
     return config
 

@@ -47,12 +47,12 @@ def logit(probability):
     return np.log(p / (1 - p))
 
 
-def native_model_fit(dataset):
+def native_model_fit(dataset, rounds=None):
     from qlib.contrib.model.gbdt import LGBModel
     from qlib.workflow import R
     model = LGBModel(**MODEL_PARAMETERS)
     with R.start(experiment_name='aql_direction_binary'):
-        model.fit(dataset, verbose_eval=False)
+        model.fit(dataset, num_boost_round=rounds, early_stopping_rounds=0 if rounds else None, verbose_eval=False)
     return model
 
 
@@ -76,6 +76,19 @@ def train_month(raw, eligible, momentum, calendar, anchor, config, directory, id
     if expected_start < spec['lookback']:
         raise StudyError('training window starts before full Alpha158 warmup')
     model = native_model_fit(dataset)
+    best_iteration = model.model.best_iteration
+    final_dataset = dataset
+    rounds = None
+    if config.get('refit'):
+        end = calendar.get_loc(pd.Timestamp(split['valid'][1]))
+        start = end - config['train_sessions'] + 1
+        split['refit'] = [str(calendar[start].date()), str(calendar[end].date())]
+        split['label_end']['refit'] = str(calendar[end + 11].date())
+        if split['label_end']['refit'] >= split['calibration'][0] or best_iteration < 1:
+            raise StudyError('invalid refit/calibration boundary or selected iteration')
+        final_dataset = dataset_from_frame(frame, {'train': tuple(split['refit'])}, learn=True)
+        rounds = best_iteration
+        model = native_model_fit(final_dataset, rounds)
     model.model.save_model(str(directory / 'model.txt'))
     train = canonical_series(train, 'y')
     train_momentum = momentum.reindex(train.index)
@@ -91,12 +104,13 @@ def train_month(raw, eligible, momentum, calendar, anchor, config, directory, id
         status = 'TEMPORAL_PLATT_FITTED_NOT_RELIABILITY_CERTIFIED'
     record = {**identity, 'schema_version': 1, 'split': split, 'parameters': MODEL_PARAMETERS,
               'feature_spec': spec, 'calibrator': calibrator, 'calibration_status': status,
+              'baseline_recent': float((cal_y.sum() + 1) / (len(cal_y) + 2)),
               'baseline_b0': b0, 'baseline_b1': baseline, 'train_pairs': len(train), 'valid_pairs': len(valid),
               'calibration_pairs': len(calibration), 'train_positive_fraction': float(train.mean()),
-              'best_iteration': model.model.best_iteration, 'model_sha256': digest(directory / 'model.txt'),
+              'best_iteration': best_iteration, 'model_sha256': digest(directory / 'model.txt'),
               'created_at': datetime.now(timezone.utc).isoformat(), 'native_repeat': 'NOT_REQUESTED'}
     if repeat:
-        second = native_model_fit(dataset)
+        second = native_model_fit(final_dataset, rounds)
         second.model.save_model(str(directory / 'repeat-model.txt'))
         other = canonical_series(second.predict(dataset, 'calibration'), 'raw')
         if digest(directory / 'repeat-model.txt') != record['model_sha256'] or not other.equals(cal_p):
@@ -114,6 +128,7 @@ def predict_frame(model, record, features, momentum):
     probability = canonical_series(model.predict(dataset), 'raw')
     output = pd.DataFrame({'raw': probability})
     output['model'] = logistic_predict(record['calibrator'], logit(probability)) if record['calibrator'] else np.nan
+    output['recent'] = record.get('baseline_recent', np.nan)
     output['b0'] = record['baseline_b0']
     output['b1'] = logistic_predict(record['baseline_b1'], momentum.reindex(output.index))
     return output
@@ -169,7 +184,7 @@ def run_direction_study(provider, manifest_path, config_path, output):
             allowed = keys[eligible.reindex(keys).to_numpy()]
             predicted = predict_frame(model, record, raw.loc[allowed, ['feature']], momentum)
             observations.loc[keys, 'model_id'] = record['model_sha256']
-            for name in ('raw', 'model', 'b0', 'b1'):
+            for name in (('raw', 'model', 'b0', 'b1', 'recent') if config.get('refit') else ('raw', 'model', 'b0', 'b1')):
                 observations.loc[predicted.index, name] = predicted[name]
             if record['calibrator'] is None:
                 observations.loc[allowed, 'reason'] = 'CALIBRATION_UNAVAILABLE'
@@ -178,6 +193,8 @@ def run_direction_study(provider, manifest_path, config_path, output):
             print(json.dumps({'month_complete': str(period), 'best_iteration': record['best_iteration']}), flush=True)
         observations.to_parquet(output / 'observations.parquet')
         summary, daily = evaluate(observations, eval_dates, config)
+        if config.get('refit'):
+            summary['research_conclusion'] = 'AWAITING_FROZEN_FOUR_COMPARATOR_ANALYSIS'
         daily.to_parquet(output / 'daily-loss.parquet')
         # Fit the latest month with the identical frozen schedule, independent of historical results.
         latest_period = cal[-1].to_period('M')

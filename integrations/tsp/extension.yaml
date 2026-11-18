@@ -2,10 +2,10 @@ format: tick-extension-package
 format_version: 1
 id: aql.research
 display_name: A股 Qlib 研究
-version: 0.1.0
+version: 0.2.0
 extension_api_version: 1
 author: yuan2go
-description: Read-only, non-PIT-qualified retrospective Qlib ranking results; no live trading
+description: Read-only, direction forecasts, paired maturity reviews and historical Qlib ranks; no live trading
 backend: backend.extension
 frontend: frontend/extension.mjs
 requires_app: '>=0.3.37'

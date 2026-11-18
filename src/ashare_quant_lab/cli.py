@@ -87,6 +87,14 @@ def build_parser() -> argparse.ArgumentParser:
     review.add_argument("--manifest", type=Path, required=True)
     review.add_argument("--output", type=Path, required=True)
 
+    inference.add_argument('--backfill', action='store_true', help='Flag replay or reconstructed publication')
+    forward = commands.add_parser('summarize-direction', help='Pair retained issuances and immutable reviews')
+    forward.add_argument('--prediction', type=Path, action='append', required=True)
+    forward.add_argument('--review', type=Path, action='append', default=[])
+    forward.add_argument('--output', type=Path, required=True)
+    display = commands.add_parser('publish-direction-tsp', help='Publish a private direction page snapshot')
+    display.add_argument('--summary', type=Path, required=True)
+    display.add_argument('--tsp-data-dir', type=Path, required=True)
     publish = commands.add_parser("publish-tsp", help="Publish validated study outputs to a local TSP data directory")
     publish.add_argument("--study-dir", type=Path, required=True)
     publish.add_argument("--tsp-data-dir", type=Path, required=True)
@@ -171,10 +179,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif args.command == "infer-direction":
             from .direction_inference import infer_direction
             result = infer_direction(args.provider_uri, args.manifest, args.model_dir,
-                                     args.model_record_sha256, args.calendar_clock, args.output)
+                                     args.model_record_sha256, args.calendar_clock, args.output, backfill=args.backfill)
         elif args.command == "review-direction":
             from .direction_inference import review_direction
             result = review_direction(args.prediction, args.provider_uri, args.manifest, args.output)
+        elif args.command == 'summarize-direction':
+            from .direction_forward import summarize
+            result = summarize(args.prediction,args.review,args.output)
+        elif args.command == 'publish-direction-tsp':
+            from .tsp_publish import publish_direction
+            result = publish_direction(args.summary,args.tsp_data_dir)
         elif args.command == "publish-tsp":
             from .tsp_publish import publish_to_tsp
             result = publish_to_tsp(args.study_dir, args.tsp_data_dir)

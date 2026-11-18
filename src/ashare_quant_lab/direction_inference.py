@@ -55,7 +55,7 @@ def load_model(directory, expected_record_sha256):
     return model, record
 
 
-def infer_direction(provider, manifest_path, model_directory, record_sha256, clock_path, output):
+def infer_direction(provider, manifest_path, model_directory, record_sha256, clock_path, output, *, backfill=False):
     import numpy as np
     import pandas as pd
     from .symbols import qlib_to_symbol
@@ -96,14 +96,16 @@ def infer_direction(provider, manifest_path, model_directory, record_sha256, clo
     entry = interval['start_date']
     delayed = entry is not None and (local.date().isoformat() > entry or
                                      (local.date().isoformat() == entry and local.hour >= 15))
-    payload = {'schema_version': 1, 'work_package': record['work_package'], 'kind': 'DIRECTION_PREDICTION',
+    payload = {'schema_version': 2, 'publication_kind': 'BACKFILL' if backfill else 'NATURAL', 'work_package': record['work_package'], 'kind': 'DIRECTION_PREDICTION',
+               'recent_baseline_applicable': 'baseline_recent' in record,
                'inference_code': code_identity(), 'status': status, 'data_kind': manifest.get('data_kind', 'REAL_SOURCE_RETROSPECTIVE'),
                'generated_at': now.isoformat(), 'data_through': str(signal.date()),
                'expected_latest_completed_session': str(expected.date()), 'prediction_interval': interval,
-               'issuance_status': 'DELAYED_AFTER_TARGET_ENTRY_CLOSE' if delayed else 'ISSUED_BEFORE_TARGET_ENTRY_CLOSE',
+               'issuance_status': 'UNKNOWN_INTERVAL' if not entry or not interval['end_date'] else 'DELAYED_AFTER_TARGET_ENTRY_CLOSE' if delayed else 'ISSUED_BEFORE_TARGET_ENTRY_CLOSE',
                'forward_performance_status': 'PENDING_NOT_ESTABLISHED',
                'up_event': EVENT, 'model_id': record['model_sha256'], 'model_record_sha256': record_sha256,
                'training_snapshot_id': record['snapshot_id'], 'inference_snapshot_id': digest(manifest_path),
+               'source_capture_started_at': manifest.get('source_capture_started_at'),
                'snapshot_exported_at': manifest['capture_timestamp'],
                'source_capture_ids': manifest['source_capture_ids'], 'source_clock_sha256': digest(clock_path),
                'training_split': record['split'], 'calibration_status': record['calibration_status'],
@@ -117,7 +119,7 @@ def infer_direction(provider, manifest_path, model_directory, record_sha256, clo
             return float(values[name]) if values is not None and np.isfinite(values[name]) else None
         payload['predictions'].append({'symbol': qlib_to_symbol(code), 'raw_probability': value('raw'),
                                        'calibrated_probability': value('model'), 'b0_probability': value('b0'),
-                                       'b1_probability': value('b1'),
+                                       'b1_probability': value('b1'), 'recent_probability': value('recent'),
                                        'data_quality': 'FULL_RAW_LOOKBACK' if good else 'INCOMPLETE_RAW_LOOKBACK'})
     write_json(output, payload)
     return {'status': status, 'prediction_path': str(output), 'prediction_sha256': digest(output),
@@ -132,6 +134,9 @@ def review_direction(prediction_path, provider, manifest_path, output):
     batch = json.loads(Path(prediction_path).read_text())
     if batch.get('kind') != 'DIRECTION_PREDICTION' or batch.get('up_event') != EVENT:
         raise StudyError('unsupported prediction record')
+    symbols = [p['symbol'] for p in batch['predictions']]
+    if not symbols or len(symbols) != len(set(symbols)):
+        raise StudyError('review requires unique original securities')
     output = Path(output).resolve()
     if output.exists():
         raise FileExistsError('review exists; choose a new append-only review path')
@@ -144,7 +149,11 @@ def review_direction(prediction_path, provider, manifest_path, output):
     pos = cal.get_loc(signal)
     result = {'kind': 'DIRECTION_MATURITY_REVIEW', 'prediction_sha256': digest(prediction_path),
               'review_code': code_identity(), 'model_id': batch['model_id'], 'original_inference_snapshot_id': batch['inference_snapshot_id'],
-              'review_snapshot_id': digest(manifest_path), 'reviewed_at': datetime.now(timezone.utc).isoformat(),
+              'review_snapshot_id': digest(manifest_path),
+              'review_data_kind': manifest.get('data_kind', 'REAL_SOURCE_RETROSPECTIVE'
+                    if manifest.get('source') == 'Tushare-compatible HTTP proxy in DuckDB' else 'UNKNOWN'),
+              'review_capture_started_at': manifest.get('source_capture_started_at'),
+              'review_capture_completed_at': manifest.get('source_capture_completed_at'), 'reviewed_at': datetime.now(timezone.utc).isoformat(),
               'data_through': str(cal[-1].date()), 'labels': [],
               'revision_qualification': 'new capture may revise adjusted history; original forecast is preserved'}
     if pos + 11 < len(cal):
@@ -157,18 +166,18 @@ def review_direction(prediction_path, provider, manifest_path, output):
             symbol = prediction['symbol']
             code = symbol.split('.')[1] + symbol.split('.')[0]
             a, b = close.get((entry, code), np.nan), close.get((exit_, code), np.nan)
-            realized = float(b / a - 1) if np.isfinite(a) and np.isfinite(b) and a > 0 else None
+            realized = float(b / a - 1) if np.isfinite(a) and np.isfinite(b) and min(a, b) > 0 else None
             result['labels'].append({'symbol': symbol, 'return': realized,
                                       'y': int(realized > 0) if realized is not None else None,
                                       'zero_return': realized == 0 if realized is not None else None,
                                       'status': 'MATURE' if realized is not None else 'MISSING_ENDPOINT_PRICE',
-                                      'original_raw_probability': prediction['raw_probability'],
-                                      'original_calibrated_probability': prediction['calibrated_probability']})
+                                      **{'original_' + name + '_probability': prediction.get(name + '_probability')
+                                         for name in ('raw','calibrated','b0','b1','recent')}})
         for row in result['labels']:
             if row['y'] is None:
                 continue
             row['probability_review'] = {}
-            for name in ('raw', 'calibrated'):
+            for name in ('raw', 'calibrated', 'b0', 'b1', 'recent'):
                 p = row['original_' + name + '_probability']
                 if p is not None:
                     clipped = min(1 - 1e-6, max(1e-6, p))

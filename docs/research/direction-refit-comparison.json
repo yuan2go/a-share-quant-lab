@@ -1,0 +1,978 @@
+{
+  "candidate_config_sha256": "de543f319233831542ffe37da1446d56a4959bf6f6c67e993f9bd8dc0e3d1e10",
+  "candidate_report": "88162b2d03b6b7078e372f3f7a99abc683cbb6c24cc47f04eef44f5d19151484",
+  "candidate_work_package": "WP-AQL-DIRECTION-DIAGNOSIS-02",
+  "common": {
+    "b0": {
+      "balanced_accuracy": 0.5020591846308183,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.2505003806119487,
+      "calibration_curve": [
+        {
+          "date_weight": 601.0,
+          "lower": 0.4,
+          "mean_probability": 0.47682051294099476,
+          "observed_up_fraction": 0.49418593531853044,
+          "pairs": 17949,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 63.99999999999999,
+          "lower": 0.5,
+          "mean_probability": 0.5032878645048419,
+          "observed_up_fraction": 0.5062500000000001,
+          "pairs": 1920,
+          "upper": 0.6
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          9074,
+          948
+        ],
+        [
+          8875,
+          972
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.6941525147043874,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    },
+    "b1": {
+      "balanced_accuracy": 0.506857686523182,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.2503483613746728,
+      "calibration_curve": [
+        {
+          "date_weight": 1.1,
+          "lower": 0.3,
+          "mean_probability": 0.38750737220873666,
+          "observed_up_fraction": 0.30303030303030304,
+          "pairs": 33,
+          "upper": 0.4
+        },
+        {
+          "date_weight": 591.0620689655173,
+          "lower": 0.4,
+          "mean_probability": 0.476099352661758,
+          "observed_up_fraction": 0.4918284638601076,
+          "pairs": 17651,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 72.83793103448275,
+          "lower": 0.5,
+          "mean_probability": 0.5045612810455075,
+          "observed_up_fraction": 0.5268033265476811,
+          "pairs": 2185,
+          "upper": 0.6
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          8988,
+          1034
+        ],
+        [
+          8696,
+          1151
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.6938486482421719,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    },
+    "model": {
+      "balanced_accuracy": 0.5071889117223312,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.25417511035249385,
+      "calibration_curve": [
+        {
+          "date_weight": 0.03333333333333333,
+          "lower": 0.2,
+          "mean_probability": 0.2882156345059562,
+          "observed_up_fraction": 1.0,
+          "pairs": 1,
+          "upper": 0.3
+        },
+        {
+          "date_weight": 43.36666666666667,
+          "lower": 0.3,
+          "mean_probability": 0.3822598960728084,
+          "observed_up_fraction": 0.6717909300538047,
+          "pairs": 1301,
+          "upper": 0.4
+        },
+        {
+          "date_weight": 333.18735632183905,
+          "lower": 0.4,
+          "mean_probability": 0.45071731601931586,
+          "observed_up_fraction": 0.46523822501578277,
+          "pairs": 9958,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 268.1126436781609,
+          "lower": 0.5,
+          "mean_probability": 0.5379398300198811,
+          "observed_up_fraction": 0.5033739464455668,
+          "pairs": 8000,
+          "upper": 0.6
+        },
+        {
+          "date_weight": 19.9,
+          "lower": 0.6,
+          "mean_probability": 0.6276081320576314,
+          "observed_up_fraction": 0.5075376884422111,
+          "pairs": 597,
+          "upper": 0.7
+        },
+        {
+          "date_weight": 0.39999999999999997,
+          "lower": 0.7,
+          "mean_probability": 0.7094901307139826,
+          "observed_up_fraction": 0.4166666666666667,
+          "pairs": 12,
+          "upper": 0.8
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          5751,
+          4271
+        ],
+        [
+          5509,
+          4338
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.7017373460912572,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    },
+    "original": {
+      "balanced_accuracy": 0.5002566558304137,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.2540729060058026,
+      "calibration_curve": [
+        {
+          "date_weight": 47.24252873563218,
+          "lower": 0.3,
+          "mean_probability": 0.3868021788253245,
+          "observed_up_fraction": 0.6400574195275054,
+          "pairs": 1417,
+          "upper": 0.4
+        },
+        {
+          "date_weight": 335.851724137931,
+          "lower": 0.4,
+          "mean_probability": 0.45248611522787185,
+          "observed_up_fraction": 0.47479217361246584,
+          "pairs": 10039,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 273.3057471264368,
+          "lower": 0.5,
+          "mean_probability": 0.5398541636575258,
+          "observed_up_fraction": 0.4899569342574524,
+          "pairs": 8155,
+          "upper": 0.6
+        },
+        {
+          "date_weight": 5.933333333333333,
+          "lower": 0.6,
+          "mean_probability": 0.6323126065999182,
+          "observed_up_fraction": 0.6460674157303371,
+          "pairs": 178,
+          "upper": 0.7
+        },
+        {
+          "date_weight": 2.6666666666666665,
+          "lower": 0.7,
+          "mean_probability": 0.7241964667663772,
+          "observed_up_fraction": 0.7375,
+          "pairs": 80,
+          "upper": 0.8
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          5781,
+          4241
+        ],
+        [
+          5675,
+          4172
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.7014506997741525,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    },
+    "original_raw": {
+      "balanced_accuracy": 0.5101657282180685,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.2512863518670282,
+      "calibration_curve": [
+        {
+          "date_weight": 1.6643678160919542,
+          "lower": 0.2,
+          "mean_probability": 0.27509460356885024,
+          "observed_up_fraction": 0.6926795580110499,
+          "pairs": 49,
+          "upper": 0.3
+        },
+        {
+          "date_weight": 26.936781609195403,
+          "lower": 0.3,
+          "mean_probability": 0.3687132584120216,
+          "observed_up_fraction": 0.4390441647109025,
+          "pairs": 797,
+          "upper": 0.4
+        },
+        {
+          "date_weight": 510.88045977011484,
+          "lower": 0.4,
+          "mean_probability": 0.4705065685861116,
+          "observed_up_fraction": 0.4911016815684441,
+          "pairs": 15280,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 117.59195402298849,
+          "lower": 0.5,
+          "mean_probability": 0.5236348620130438,
+          "observed_up_fraction": 0.5270514637603246,
+          "pairs": 3507,
+          "upper": 0.6
+        },
+        {
+          "date_weight": 7.126436781609195,
+          "lower": 0.6,
+          "mean_probability": 0.6359120351825279,
+          "observed_up_fraction": 0.442741935483871,
+          "pairs": 212,
+          "upper": 0.7
+        },
+        {
+          "date_weight": 0.7666666666666666,
+          "lower": 0.7,
+          "mean_probability": 0.7243617843773021,
+          "observed_up_fraction": 0.47826086956521746,
+          "pairs": 23,
+          "upper": 0.8
+        },
+        {
+          "date_weight": 0.03333333333333333,
+          "lower": 0.8,
+          "mean_probability": 0.8008449437776355,
+          "observed_up_fraction": 1.0,
+          "pairs": 1,
+          "upper": 0.9
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          8235,
+          1787
+        ],
+        [
+          7891,
+          1956
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.695860055322857,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    },
+    "raw": {
+      "balanced_accuracy": 0.4938148564272645,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.25233656525540543,
+      "calibration_curve": [
+        {
+          "date_weight": 0.10344827586206896,
+          "lower": 0.1,
+          "mean_probability": 0.1888008783133718,
+          "observed_up_fraction": 1.0,
+          "pairs": 3,
+          "upper": 0.2
+        },
+        {
+          "date_weight": 3.227586206896551,
+          "lower": 0.2,
+          "mean_probability": 0.2631059736729904,
+          "observed_up_fraction": 0.4540598290598293,
+          "pairs": 95,
+          "upper": 0.3
+        },
+        {
+          "date_weight": 30.406896551724138,
+          "lower": 0.3,
+          "mean_probability": 0.36973885892127184,
+          "observed_up_fraction": 0.44484766008921145,
+          "pairs": 901,
+          "upper": 0.4
+        },
+        {
+          "date_weight": 504.71494252873555,
+          "lower": 0.4,
+          "mean_probability": 0.46795509713117583,
+          "observed_up_fraction": 0.5026895800975628,
+          "pairs": 15110,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 116.05517241379312,
+          "lower": 0.5,
+          "mean_probability": 0.5268538819458167,
+          "observed_up_fraction": 0.4840345455986055,
+          "pairs": 3450,
+          "upper": 0.6
+        },
+        {
+          "date_weight": 9.857471264367815,
+          "lower": 0.6,
+          "mean_probability": 0.6265701607046198,
+          "observed_up_fraction": 0.39097481343283585,
+          "pairs": 291,
+          "upper": 0.7
+        },
+        {
+          "date_weight": 0.6344827586206896,
+          "lower": 0.7,
+          "mean_probability": 0.7325376463284494,
+          "observed_up_fraction": 0.8931159420289856,
+          "pairs": 19,
+          "upper": 0.8
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          8064,
+          1958
+        ],
+        [
+          8045,
+          1802
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.6979942584185381,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    },
+    "recent": {
+      "balanced_accuracy": 0.49846988397638525,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.25418009828842447,
+      "calibration_curve": [
+        {
+          "date_weight": 36.0,
+          "lower": 0.3,
+          "mean_probability": 0.38588489335448606,
+          "observed_up_fraction": 0.7018518518518518,
+          "pairs": 1080,
+          "upper": 0.4
+        },
+        {
+          "date_weight": 337.99999999999994,
+          "lower": 0.4,
+          "mean_probability": 0.4524161248557231,
+          "observed_up_fraction": 0.4747228456777529,
+          "pairs": 10092,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 291.0,
+          "lower": 0.5,
+          "mean_probability": 0.5363313033267111,
+          "observed_up_fraction": 0.49375518426353826,
+          "pairs": 8697,
+          "upper": 0.6
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          5620,
+          4402
+        ],
+        [
+          5552,
+          4295
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.7016865480815926,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    }
+  },
+  "conclusion": "NO_CONSISTENT_INCREMENT",
+  "differences": {
+    "b0": {
+      "interval": {
+        "axis_dates": 665,
+        "block_sessions": 20,
+        "confidence": 0.95,
+        "lower": -0.006578806203724813,
+        "observed_dates": 665,
+        "replicates": 2000,
+        "seed": 23,
+        "status": "RETROSPECTIVE_MOVING_DATE_BLOCKS",
+        "upper": 0.023227701234635786
+      },
+      "mean": 0.0075848313868696945,
+      "years": {
+        "2024": 0.023512419497307358,
+        "2025": -0.006999030948467771,
+        "2026": 0.005956819303286975
+      }
+    },
+    "b1": {
+      "interval": {
+        "axis_dates": 665,
+        "block_sessions": 20,
+        "confidence": 0.95,
+        "lower": -0.006351692778494682,
+        "observed_dates": 665,
+        "replicates": 2000,
+        "seed": 23,
+        "status": "RETROSPECTIVE_MOVING_DATE_BLOCKS",
+        "upper": 0.0237799839521139
+      },
+      "mean": 0.007888697849085378,
+      "years": {
+        "2024": 0.023545874311342637,
+        "2025": -0.0070047907910266,
+        "2026": 0.007036422778053397
+      }
+    },
+    "original": {
+      "interval": {
+        "axis_dates": 665,
+        "block_sessions": 20,
+        "confidence": 0.95,
+        "lower": -0.002085266689470958,
+        "observed_dates": 665,
+        "replicates": 2000,
+        "seed": 23,
+        "status": "RETROSPECTIVE_MOVING_DATE_BLOCKS",
+        "upper": 0.002451895845324939
+      },
+      "mean": 0.0002866463171047252,
+      "years": {
+        "2024": 0.0005055077535662806,
+        "2025": -3.5926242008918874e-05,
+        "2026": 0.00042830115510130335
+      }
+    },
+    "recent": {
+      "interval": {
+        "axis_dates": 665,
+        "block_sessions": 20,
+        "confidence": 0.95,
+        "lower": -0.0028441323842373916,
+        "observed_dates": 665,
+        "replicates": 2000,
+        "seed": 23,
+        "status": "RETROSPECTIVE_MOVING_DATE_BLOCKS",
+        "upper": 0.002809622803141213
+      },
+      "mean": 5.0798009664548964e-05,
+      "years": {
+        "2024": 0.0007975618549320151,
+        "2025": -0.000903772417618363,
+        "2026": 0.00033803849099210855
+      }
+    }
+  },
+  "expected": 19950,
+  "original_report": "ce84ad6b966016c6a3c5741871c001821bba8bfeb8d1764c91127ced5f7197d5",
+  "output_pairs": {
+    "b0": 19880,
+    "b1": 19880,
+    "model": 19880,
+    "original": 19880,
+    "original_raw": 19880,
+    "raw": 19880,
+    "recent": 19880
+  },
+  "own": {
+    "b0": {
+      "balanced_accuracy": 0.5020591846308183,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.2505003806119487,
+      "calibration_curve": [
+        {
+          "date_weight": 601.0,
+          "lower": 0.4,
+          "mean_probability": 0.47682051294099476,
+          "observed_up_fraction": 0.49418593531853044,
+          "pairs": 17949,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 63.99999999999999,
+          "lower": 0.5,
+          "mean_probability": 0.5032878645048419,
+          "observed_up_fraction": 0.5062500000000001,
+          "pairs": 1920,
+          "upper": 0.6
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          9074,
+          948
+        ],
+        [
+          8875,
+          972
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.6941525147043874,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    },
+    "b1": {
+      "balanced_accuracy": 0.506857686523182,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.2503483613746728,
+      "calibration_curve": [
+        {
+          "date_weight": 1.1,
+          "lower": 0.3,
+          "mean_probability": 0.38750737220873666,
+          "observed_up_fraction": 0.30303030303030304,
+          "pairs": 33,
+          "upper": 0.4
+        },
+        {
+          "date_weight": 591.0620689655173,
+          "lower": 0.4,
+          "mean_probability": 0.476099352661758,
+          "observed_up_fraction": 0.4918284638601076,
+          "pairs": 17651,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 72.83793103448275,
+          "lower": 0.5,
+          "mean_probability": 0.5045612810455075,
+          "observed_up_fraction": 0.5268033265476811,
+          "pairs": 2185,
+          "upper": 0.6
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          8988,
+          1034
+        ],
+        [
+          8696,
+          1151
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.6938486482421719,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    },
+    "model": {
+      "balanced_accuracy": 0.5071889117223312,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.25417511035249385,
+      "calibration_curve": [
+        {
+          "date_weight": 0.03333333333333333,
+          "lower": 0.2,
+          "mean_probability": 0.2882156345059562,
+          "observed_up_fraction": 1.0,
+          "pairs": 1,
+          "upper": 0.3
+        },
+        {
+          "date_weight": 43.36666666666667,
+          "lower": 0.3,
+          "mean_probability": 0.3822598960728084,
+          "observed_up_fraction": 0.6717909300538047,
+          "pairs": 1301,
+          "upper": 0.4
+        },
+        {
+          "date_weight": 333.18735632183905,
+          "lower": 0.4,
+          "mean_probability": 0.45071731601931586,
+          "observed_up_fraction": 0.46523822501578277,
+          "pairs": 9958,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 268.1126436781609,
+          "lower": 0.5,
+          "mean_probability": 0.5379398300198811,
+          "observed_up_fraction": 0.5033739464455668,
+          "pairs": 8000,
+          "upper": 0.6
+        },
+        {
+          "date_weight": 19.9,
+          "lower": 0.6,
+          "mean_probability": 0.6276081320576314,
+          "observed_up_fraction": 0.5075376884422111,
+          "pairs": 597,
+          "upper": 0.7
+        },
+        {
+          "date_weight": 0.39999999999999997,
+          "lower": 0.7,
+          "mean_probability": 0.7094901307139826,
+          "observed_up_fraction": 0.4166666666666667,
+          "pairs": 12,
+          "upper": 0.8
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          5751,
+          4271
+        ],
+        [
+          5509,
+          4338
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.7017373460912572,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    },
+    "original": {
+      "balanced_accuracy": 0.5002566558304137,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.2540729060058026,
+      "calibration_curve": [
+        {
+          "date_weight": 47.24252873563218,
+          "lower": 0.3,
+          "mean_probability": 0.3868021788253245,
+          "observed_up_fraction": 0.6400574195275054,
+          "pairs": 1417,
+          "upper": 0.4
+        },
+        {
+          "date_weight": 335.851724137931,
+          "lower": 0.4,
+          "mean_probability": 0.45248611522787185,
+          "observed_up_fraction": 0.47479217361246584,
+          "pairs": 10039,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 273.3057471264368,
+          "lower": 0.5,
+          "mean_probability": 0.5398541636575258,
+          "observed_up_fraction": 0.4899569342574524,
+          "pairs": 8155,
+          "upper": 0.6
+        },
+        {
+          "date_weight": 5.933333333333333,
+          "lower": 0.6,
+          "mean_probability": 0.6323126065999182,
+          "observed_up_fraction": 0.6460674157303371,
+          "pairs": 178,
+          "upper": 0.7
+        },
+        {
+          "date_weight": 2.6666666666666665,
+          "lower": 0.7,
+          "mean_probability": 0.7241964667663772,
+          "observed_up_fraction": 0.7375,
+          "pairs": 80,
+          "upper": 0.8
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          5781,
+          4241
+        ],
+        [
+          5675,
+          4172
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.7014506997741525,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    },
+    "original_raw": {
+      "balanced_accuracy": 0.5101657282180685,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.2512863518670282,
+      "calibration_curve": [
+        {
+          "date_weight": 1.6643678160919542,
+          "lower": 0.2,
+          "mean_probability": 0.27509460356885024,
+          "observed_up_fraction": 0.6926795580110499,
+          "pairs": 49,
+          "upper": 0.3
+        },
+        {
+          "date_weight": 26.936781609195403,
+          "lower": 0.3,
+          "mean_probability": 0.3687132584120216,
+          "observed_up_fraction": 0.4390441647109025,
+          "pairs": 797,
+          "upper": 0.4
+        },
+        {
+          "date_weight": 510.88045977011484,
+          "lower": 0.4,
+          "mean_probability": 0.4705065685861116,
+          "observed_up_fraction": 0.4911016815684441,
+          "pairs": 15280,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 117.59195402298849,
+          "lower": 0.5,
+          "mean_probability": 0.5236348620130438,
+          "observed_up_fraction": 0.5270514637603246,
+          "pairs": 3507,
+          "upper": 0.6
+        },
+        {
+          "date_weight": 7.126436781609195,
+          "lower": 0.6,
+          "mean_probability": 0.6359120351825279,
+          "observed_up_fraction": 0.442741935483871,
+          "pairs": 212,
+          "upper": 0.7
+        },
+        {
+          "date_weight": 0.7666666666666666,
+          "lower": 0.7,
+          "mean_probability": 0.7243617843773021,
+          "observed_up_fraction": 0.47826086956521746,
+          "pairs": 23,
+          "upper": 0.8
+        },
+        {
+          "date_weight": 0.03333333333333333,
+          "lower": 0.8,
+          "mean_probability": 0.8008449437776355,
+          "observed_up_fraction": 1.0,
+          "pairs": 1,
+          "upper": 0.9
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          8235,
+          1787
+        ],
+        [
+          7891,
+          1956
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.695860055322857,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    },
+    "raw": {
+      "balanced_accuracy": 0.4938148564272645,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.25233656525540543,
+      "calibration_curve": [
+        {
+          "date_weight": 0.10344827586206896,
+          "lower": 0.1,
+          "mean_probability": 0.1888008783133718,
+          "observed_up_fraction": 1.0,
+          "pairs": 3,
+          "upper": 0.2
+        },
+        {
+          "date_weight": 3.227586206896551,
+          "lower": 0.2,
+          "mean_probability": 0.2631059736729904,
+          "observed_up_fraction": 0.4540598290598293,
+          "pairs": 95,
+          "upper": 0.3
+        },
+        {
+          "date_weight": 30.406896551724138,
+          "lower": 0.3,
+          "mean_probability": 0.36973885892127184,
+          "observed_up_fraction": 0.44484766008921145,
+          "pairs": 901,
+          "upper": 0.4
+        },
+        {
+          "date_weight": 504.71494252873555,
+          "lower": 0.4,
+          "mean_probability": 0.46795509713117583,
+          "observed_up_fraction": 0.5026895800975628,
+          "pairs": 15110,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 116.05517241379312,
+          "lower": 0.5,
+          "mean_probability": 0.5268538819458167,
+          "observed_up_fraction": 0.4840345455986055,
+          "pairs": 3450,
+          "upper": 0.6
+        },
+        {
+          "date_weight": 9.857471264367815,
+          "lower": 0.6,
+          "mean_probability": 0.6265701607046198,
+          "observed_up_fraction": 0.39097481343283585,
+          "pairs": 291,
+          "upper": 0.7
+        },
+        {
+          "date_weight": 0.6344827586206896,
+          "lower": 0.7,
+          "mean_probability": 0.7325376463284494,
+          "observed_up_fraction": 0.8931159420289856,
+          "pairs": 19,
+          "upper": 0.8
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          8064,
+          1958
+        ],
+        [
+          8045,
+          1802
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.6979942584185381,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    },
+    "recent": {
+      "balanced_accuracy": 0.49846988397638525,
+      "balanced_accuracy_status": "DEFINED",
+      "brier": 0.25418009828842447,
+      "calibration_curve": [
+        {
+          "date_weight": 36.0,
+          "lower": 0.3,
+          "mean_probability": 0.38588489335448606,
+          "observed_up_fraction": 0.7018518518518518,
+          "pairs": 1080,
+          "upper": 0.4
+        },
+        {
+          "date_weight": 337.99999999999994,
+          "lower": 0.4,
+          "mean_probability": 0.4524161248557231,
+          "observed_up_fraction": 0.4747228456777529,
+          "pairs": 10092,
+          "upper": 0.5
+        },
+        {
+          "date_weight": 291.0,
+          "lower": 0.5,
+          "mean_probability": 0.5363313033267111,
+          "observed_up_fraction": 0.49375518426353826,
+          "pairs": 8697,
+          "upper": 0.6
+        }
+      ],
+      "confusion_axes": "rows actual 0/1; columns predicted 0/1",
+      "confusion_matrix": [
+        [
+          5620,
+          4402
+        ],
+        [
+          5552,
+          4295
+        ]
+      ],
+      "dates": 665,
+      "log_loss": 0.7016865480815926,
+      "not_up_pairs": 10022,
+      "pairs": 19869,
+      "positive_fraction_pairs": 0.4955961548140319,
+      "positive_pairs": 9847,
+      "zero_return_pairs": 116
+    }
+  },
+  "snapshot": "06b067a408e7c713d34b5625afba615a01cb939a4bb0dd525e332a77abd142d3"
+}

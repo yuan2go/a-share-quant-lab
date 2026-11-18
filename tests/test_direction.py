@@ -149,7 +149,8 @@ class ReviewTests(unittest.TestCase):
         batch={'kind':'DIRECTION_PREDICTION','up_event':EVENT,'model_id':'model',
                'inference_snapshot_id':'old','data_through':str(cal[0].date()),
                'prediction_interval':{'start_date':str(cal[1].date()),'end_date':str(cal[11].date())},
-               'predictions':[{'symbol':'600519.SH','raw_probability':.6,'calibrated_probability':.55}]}
+               'predictions':[{'symbol':'600519.SH','raw_probability':.6,'calibrated_probability':.55,
+                               'b0_probability':.51,'b1_probability':.48,'recent_probability':.5}]}
         with tempfile.TemporaryDirectory() as d:
             original=Path(d)/'prediction.json';manifest=Path(d)/'manifest.json';out=Path(d)/'review.json'
             write_json(original,batch);write_json(manifest,{'identity':'new'})
@@ -168,6 +169,9 @@ class ReviewTests(unittest.TestCase):
             self.assertEqual(review['prediction_sha256'],before)
             self.assertEqual(review['labels'][0]['y'],1)
             self.assertAlmostEqual(review['labels'][0]['return'],.01)
+            scores = review['labels'][0]['probability_review']
+            self.assertEqual(set(scores), {'raw','calibrated','b0','b1','recent'})
+            self.assertAlmostEqual(scores['b1']['brier'], (1-.48)**2)
 
 @unittest.skipUnless(importlib.util.find_spec('qlib'), 'requires official Qlib environment')
 class ModelIdentityTests(unittest.TestCase):
