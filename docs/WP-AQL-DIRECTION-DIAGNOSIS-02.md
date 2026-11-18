@@ -42,7 +42,7 @@
 
 原 11 月 17 日样例 SHA256 `6318702e2e53049faf8df557e81ac82bfa19d8d757ef5cf6af6d3556c6b27e33`。用原 SSE/SZSE 交易日历核实入场 11 月 18 日收盘、结束 12 月 2 日收盘。原预测留存四种概率，B2 缺失。11 月 18 日复盘仍 PENDING，合格成熟日/对均为 0。归档联调同时读入 real-01 的三个迟发版本及 real-02 原预测。另以原最新快照重建带 B2 的 11 月原模型，模型文本和四种既有输出匹配；补算预测标记 BACKFILL。候选最新月模型也完成独立加载验证。两份工程补算均未计入自然前瞻。
 
-扩展 v0.2.0 已经官方 TSP v0.3.37 包安装和启动链在独立数据目录运行。Chrome 在 /aql-research 核对了全部 30 行及五种方法的显示值（旧 B2 显示空值）、生成时点、预测区间、模型时钟、PENDING、空配对与可展开的历史排名。已有工作台没有部署或重启。复盘成熟分支和跨日期分母经工程样例验证，真实到期表现待后续收盘数据。
+扩展 v0.2.1 已经官方 TSP v0.3.37 包安装和启动链在独立数据目录运行。Chrome 在 /aql-research 核对了全部 30 行及五种方法的显示值（旧 B2 显示空值）、生成时点、预测区间、模型时钟、PENDING、空配对与可展开的历史排名。批次选择器实际切换 4 份归档，4×30 行的证券、已留存概率、缺失值与对应批次 API 全部匹配。已有工作台没有部署或重启。复盘成熟分支和跨日期分母经工程样例验证，真实到期表现待后续收盘数据。
 
 ## 身份与复查
 
@@ -54,6 +54,6 @@
 | study-public/study-report.json | SHA256 20cafbce485bc0f9d3a785364c8d92d53a776ed07dbb503a3eb0ed304fcb4237；源快照 06b067a408e7c713d34b5625afba615a01cb939a4bb0dd525e332a77abd142d3；完整依赖与源码哈希在报告 |
 | study、repeat、study-public | observations SHA256 4689a708d50772819a2186b955960860d65476c6019a2f3a459ad11062d0bbf8；daily-loss SHA256 59b48981567bf399b854cf5731295eb2ee9943c3bc871c4b25a57019f7081279 |
 | verify.py、verification.json | 逐月模型、校准、近期基线、日历与历史预测身份独立复核 |
-| archive-final.json、review-final.json、browser-verification.json | 原预测/复盘摘要关联、真实 PENDING 及独立宿主页面检查 |
+| archive-browser.json、review-final.json、browser-verification.json、batch-switch-verification.json | 原预测/复盘摘要关联、真实 PENDING 及独立宿主页面检查 |
 
 本地 60 项测试通过。新增回归覆盖原选择模型与最终模型的校准调用、756 日边界、单个缺失标签对 B2 分母的影响、同日重复发布、复盘修订、合成/盘中采集排除及两组配对日期。首次冻结和运行的私有 Git 记录另存于同根 private-freeze.bundle，依赖基线 a8655ae3。

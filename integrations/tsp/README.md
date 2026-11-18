@@ -16,4 +16,4 @@
 
 上游协议：[源码插件](https://github.com/shy3130/tick-stock-panel/blob/v0.3.37/docs/plugin-development.md)、[研究扩展](https://github.com/shy3130/tick-stock-panel/blob/v0.3.37/docs/extension-packages.md)。
 
-v0.2.0 的 Qlib 研究页增加私有方向预测、到期标签、损失及跨日期配对。先按[运行手册](../../docs/RUN-TUSHARE-QLIB.md#方向诊断配对复盘与页面)生成并发布方向摘要，再在独立验证宿主安装 ZIP。旧排名保留在同页折叠区。2026-11-18 验证使用独立端口 3038 与新 data_dir。
+v0.2.1 的 Qlib 研究页增加私有方向预测、到期标签、损失及跨日期配对。先按[运行手册](../../docs/RUN-TUSHARE-QLIB.md#方向诊断配对复盘与页面)生成并发布方向摘要，再在独立验证宿主安装 ZIP。旧排名保留在同页折叠区。2026-11-18 验证使用独立端口 3038 与新 data_dir。

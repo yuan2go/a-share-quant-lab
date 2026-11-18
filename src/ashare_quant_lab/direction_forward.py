@@ -95,6 +95,7 @@ def summarize(predictions, reviews, output):
             raise ValueError("unbound maturity review")
         linked[review["prediction_sha256"]].append((sha, review))
     rows, audit, selected, seen = [], [], set(), set()
+    views = []
     latest = None
     for sha, batch in sorted(
         batches.items(), key=lambda item: (timestamp(item[1]["generated_at"]), item[0])
@@ -198,6 +199,7 @@ def summarize(predictions, reviews, output):
             labels=list(labels.values()),
             prediction_sha256=sha,
         )
+        views.append(view)
         if latest is None or (day, qualification == "ELIGIBLE_ISSUANCE") > (
             latest["data_through"],
             latest["qualification"] == "ELIGIBLE_ISSUANCE",
@@ -223,5 +225,8 @@ def summarize(predictions, reviews, output):
                 if n != "calibrated"
             },
         )
-    write_json(output, dict(kind="DIRECTION_FORWARD_SUMMARY", latest=latest, batches=audit, paired=paired))
+    write_json(
+        output,
+        dict(kind="DIRECTION_FORWARD_SUMMARY", latest=latest, views=views, batches=audit, paired=paired),
+    )
     return dict(summary=str(output), batches=len(audit), pairs=paired["original_methods"]["pairs"])
