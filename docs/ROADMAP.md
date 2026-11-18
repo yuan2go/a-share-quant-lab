@@ -1,5 +1,7 @@
 # 当前状态与后继决策
 
+**2026-11-18 方向研究更新。** 同一 665 日内，新训练窗校准 log loss 为 0.701737，原方案 0.701451，四项主比较均无一致增量。两个方案均未采用。独立 TSP 研究页可核对概率和成熟表现，11 月 17 日原预测仍待 12 月 2 日收盘数据。见[诊断与真实对照](WP-AQL-DIRECTION-DIAGNOSIS-02.md)。
+
 **2026-11-16：WP-AQL-FIRST-REAL-RESEARCH-01已完成真实固定样本回顾性闭环，整体未改善动量。** 代码基于main `c6fe28f`；最终实验代码`86ce457`。完整身份、失败、指标与私有路径见[实际研究记录](WP-AQL-FIRST-REAL-RESEARCH-01-RESULTS.md)，机器汇总见[summary](research/first-real-study-20261116-summary.json)。工程CI以PR最终head检查为准。
 
 | 能力 | 状态 | 有效范围/缺口 |
