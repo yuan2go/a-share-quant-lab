@@ -55,3 +55,5 @@
 | study、repeat、study-public | observations SHA256 4689a708d50772819a2186b955960860d65476c6019a2f3a459ad11062d0bbf8；daily-loss SHA256 59b48981567bf399b854cf5731295eb2ee9943c3bc871c4b25a57019f7081279 |
 | verify.py、verification.json | 逐月模型、校准、近期基线、日历与历史预测身份独立复核 |
 | archive-final.json、review-final.json、browser-verification.json | 原预测/复盘摘要关联、真实 PENDING 及独立宿主页面检查 |
+
+本地 60 项测试通过。新增回归覆盖原选择模型与最终模型的校准调用、756 日边界、单个缺失标签对 B2 分母的影响、同日重复发布、复盘修订、合成/盘中采集排除及两组配对日期。首次冻结和运行的私有 Git 记录另存于同根 private-freeze.bundle，依赖基线 a8655ae3。
