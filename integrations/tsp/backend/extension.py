@@ -1,7 +1,9 @@
 """TSP backend extension. No model, trading or third-party HTTP calls in web workers."""
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +49,38 @@ def setup(registrar):
             }
         except (OSError, ValueError, KeyError, TypeError) as exc:
             raise HTTPException(status_code=422, detail="invalid research artifacts") from None
+
+    @router.get("/direction")
+    def direction() -> dict[str, Any]:
+        if _root is None:
+            raise HTTPException(status_code=503, detail="extension not initialized")
+        path = _root / "aql" / "latest-direction.json"
+        if not path.is_file():
+            return {"kind": "NO_DIRECTION_DATA"}
+        try:
+            if path.stat().st_size > 5_000_000:
+                raise ValueError("oversized direction snapshot")
+            summary = json.loads(path.read_text())
+            if summary["kind"] != "DIRECTION_FORWARD_SUMMARY":
+                raise ValueError("invalid summary")
+            return {**{key: summary[key] for key in ("kind", "latest", "paired", "historical")},
+                    "archive": summary.get("archive", [])}
+        except (OSError, ValueError, TypeError, KeyError):
+            raise HTTPException(status_code=422, detail="invalid direction snapshot") from None
+
+    @router.get("/direction/{key}")
+    def archived_direction(key: str) -> dict[str, Any]:
+        if _root is None or not re.fullmatch(r"[a-f0-9]{64}", key):
+            raise HTTPException(status_code=404)
+        path = _root / "aql" / "direction-reviews" / (key + ".json")
+        if not path.is_file():
+            raise HTTPException(status_code=404)
+        if path.stat().st_size > 1_000_000:
+            raise HTTPException(status_code=422, detail="oversized batch")
+        raw = path.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != key:
+            raise HTTPException(status_code=422, detail="invalid archived batch")
+        return json.loads(raw)
 
     registrar.include_router(router)
 

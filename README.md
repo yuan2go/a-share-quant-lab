@@ -1,5 +1,7 @@
 # A-Share Quant Lab
 
+**2026-11-18 方向研究更新。** 同一 665 日内，新训练窗校准 log loss 为 0.701737，原方案 0.701451，四项主比较均无一致增量。两个方案均未采用。独立 TSP 研究页可核对概率和成熟表现，11 月 17 日原预测仍待 12 月 2 日收盘数据。见[诊断与真实对照](docs/WP-AQL-DIRECTION-DIAGNOSIS-02.md)。
+
 **独立的 A 股选股与买卖点研究应用。** 官方 [Qlib](https://github.com/microsoft/qlib) 负责因子、机器学习及研究计算；[TSP](https://github.com/shy3130/tick-stock-panel) 是可选的独立 Web 工作台。本仓库管理 A 股数据与研究协议，不 Fork 两者，也不写入 [MRA](https://github.com/yuan2go/market-regime-alpha) 的运行实例。
 
 **当前研究结论**：已实际完成真实 Tushare → DuckDB → Parquet → 官方 Qlib Binary → Alpha158/LightGBM 的固定样本研究。665个配对日期、19,919个证券日期对中，模型平均 RankIC **-0.00115**，20日动量 **0.01136**，差值 **-0.01251**；整体未改善。详见[实际研究记录与验收边界](docs/WP-AQL-FIRST-REAL-RESEARCH-01-RESULTS.md)。暂不推进买卖点开发；严格 PIT、独立 OOS、扣费收益仍未证明。

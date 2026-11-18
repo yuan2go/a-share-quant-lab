@@ -107,3 +107,40 @@ mkdir -p "$AQL_DIRECTION_ROOT"
 calendar-clock过期（24小时）、新交易日尚未抓取或当前月模型未更新时，重新prepare到**新目录**；可对新快照infer，模型训练快照与推理快照分别记录。过期数据明确STALE；尚未结束的信号日明确BLOCKED；某股票回溯区间缺行情会使其无输出，不能填价。标签未成熟的review保留PENDING而非负例；成熟复盘新增原预测SHA、实际标签、原概率及单样本log loss/Brier，不覆盖之前review。
 
 `study-report.json`、`daily-loss.parquet`、`observations.parquet`、逐月`models/*/model-record.json`提供公共评价范围、各自输出范围、逐年/逐证券/校准曲线和块区间。`prediction.json`是实际生成时点的新推理，不能用历史测试末日替代。原始/校准概率分列；TEMPORAL_PLATT_FITTED只证明独立时段拟合，不能称概率可靠性通过。公开CI只运行明确标记SYNTHETIC_ENGINEERING_ONLY的原生链，真实市场报告与其分开。
+
+## 方向诊断、配对复盘与页面
+
+从仓库根执行，沿用上节的 AQL_ENV、AQL_HISTORY、AQL_DIRECTION_ROOT。指定全新外置盘目录，PYTHONPATH 指向当前 checkout，避免 editable 安装指向旧工作区。以下真实历史步骤完全离线。正式运行以独立配置和最后的四对照比较为准。
+
+~~~bash
+export PYTHONPATH="$PWD/src"
+PY="$AQL_ENV/venv/bin/python"
+OLD="$AQL_DIRECTION_ROOT/real-01/study-final"
+PUB="$AQL_DIRECTION_ROOT/real-02"
+mkdir -p "$AQL_OUT"
+"$PY" scripts/diagnose_direction.py "$AQL_HISTORY" "$OLD" "$AQL_OUT/diagnosis.json"
+"$PY" -m ashare_quant_lab run-direction-study --config configs/direction-refit.json \
+  --provider-uri "$AQL_HISTORY/binary" --manifest "$AQL_HISTORY/parquet/manifest.json" \
+  --output-dir "$AQL_OUT/study"
+"$PY" scripts/compare_direction.py "$OLD" "$AQL_OUT/study" "$AQL_OUT/comparison.json"
+~~~
+
+日常推理用上节 infer-direction 加载可信月更记录。新月度训练同时把近期基线 B2 固定在 model-record 内；同月推理直接读取它。旧记录缺 B2 时，仍可做四方法配对。独立工程补算或重演必须在 infer-direction 指定 `--backfill`。补算不会更新原记录。过期源日历需刷新后再生成；来源或生成资格不足时保留相应状态。
+
+成熟后用包含目标结束日的新真实 capture、Parquet、Binary 执行 review-direction。快照 manifest 的 source_capture_started_at / source_capture_completed_at 来自对应 DuckDB 批次；capture_timestamp 表示导出时刻。合格成熟评价要求批次开始时间在目标结束收盘或之后。旧复盘缺来源类别或采集时钟时可保留查看，通过独立新快照复核后再评价。尚未到期时可以用原快照验证待成熟分支。
+
+~~~bash
+"$PY" -m ashare_quant_lab review-direction --prediction "$PUB/prediction.json" \
+  --provider-uri "$PUB/binary" --manifest "$PUB/parquet/manifest.json" --output "$AQL_OUT/pending.json"
+"$PY" -m ashare_quant_lab summarize-direction --prediction "$PUB/prediction.json" \
+  --review "$PUB/initial-review.json" --review "$AQL_OUT/pending.json" --output "$AQL_OUT/forward.json"
+# 将同一实验的所有独立预测、复盘和修订传入，可重复 --prediction / --review。
+# 两组共同样本各自按日等权，旧预测没有 B2 时仅进入四方法组。
+"$PY" -m ashare_quant_lab publish-direction-tsp --summary "$AQL_OUT/forward.json" \
+  --tsp-data-dir "$TSP_VERIFICATION_DATA"
+"$PY" scripts/package_tsp_extension.py "$AQL_OUT/extension.zip"
+~~~
+
+同一实验、目标、信号日只选最早的合格原始发布，生成时钟相同用文件 SHA 排序；旧模型按月更替仍可跨日评价。逐个复盘须绑定原预测 SHA、模型和推理快照。相同文件重复输入去重。以最早撰写且采集时钟合格的成熟或部分成熟复盘为主版本，数据修订另存，后续修订不增加样本数；部分成熟整批不进主比较。必须提供完整归档，结果只对所提供文件负责。汇总附原始身份、主复盘与全部复盘 SHA。迟发、补算、过期或覆盖不全的批次不进入两个分母。
+
+在独立 TSP 安装扩展并启动验证实例，进入 **Qlib 研究**（/aql-research）。顶部是方向预测、数据/模型时钟、覆盖、原始与校准概率、三个基线、成熟与跨日配对。底部“查看历史排名实验”沿用原接口。可在“预测批次”下拉框切换旧信号日与重复发布版本；成熟行可展开各方法损失。先写入按内容哈希寻址的批次明细，再原子替换展示索引，独立推理和研究在页面进程外运行。本次独立页面验收地址为 http://127.0.0.1:3038/aql-research 。

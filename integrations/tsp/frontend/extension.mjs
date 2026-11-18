@@ -17,6 +17,89 @@ function element(tag, parent, text, css) {
   parent.appendChild(e)
   return e
 }
+function metric(value) {
+  return Number.isFinite(value) ? value.toFixed(5) : '—'
+}
+
+function renderBatch(panel, latest, historical) {
+  const interval = latest.prediction_interval
+  element('h3', panel, '10 期上涨概率')
+  element('p', panel, '数据截至 ' + latest.data_through + ' · 生成于 ' + latest.generated_at)
+  element('p', panel, '预测区间 ' + (interval.start_date ?? '未知') + ' 收盘 至 ' + (interval.end_date ?? '未知') + ' 收盘')
+  element('p', panel, latest.work_package + ' · 模型 ' + latest.model_id, style.dim + ';overflow-wrap:anywhere')
+  element('p', panel, [latest.data_status, latest.model_status, latest.status, latest.calibration_status, latest.issuance_status, latest.qualification].join(' · '), style.dim)
+  element('p', panel, '历史校准 log loss · 原方案 ' + metric(historical.original_loss) + ' · ' + historical.original +
+    ' · 重拟合 ' + metric(historical.candidate_loss) + ' · ' + historical.candidate + ' · ' + historical.candidate_adoption)
+  const labels = new Map(latest.labels.map(row => [row.symbol, row]))
+  const count = latest.predictions.filter(row => Number.isFinite(row.calibrated_probability)).length
+  element('p', panel, '校准概率覆盖 ' + count + '/30 · 到期复盘 ' + latest.maturity)
+  const table = element('table', panel, null, style.table)
+  const header = element('tr', element('thead', table))
+  for (const label of ['证券','原始','校准','B0','B1','近期 B2','到期上涨']) element('th', header, label, style.cell)
+  const body = element('tbody', table)
+  for (const p of latest.predictions) {
+    const row = element('tr', body)
+    element('td', row, p.symbol, style.cell)
+    for (const key of ['raw','calibrated','b0','b1','recent']) element('td', row, metric(p[key+'_probability']), style.cell)
+    const label = labels.get(p.symbol)
+    const cell = element('td', row, label?.y == null ? '—' : label.y ? '上涨' : '未上涨', style.cell)
+    if (label?.probability_review) {
+      const details = element('details', cell)
+      element('summary', details, '各方法损失')
+      for (const [method, score] of Object.entries(label.probability_review)) {
+        element('p', details, method + ' · log loss ' + metric(score.log_loss) + ' · Brier ' + metric(score.brier))
+      }
+    }
+  }
+}
+
+async function showDirection(panel, active) {
+  try {
+    const response = await fetch('/api/extensions/aql.research/direction', {credentials:'same-origin'})
+    if (!response.ok) throw new Error('HTTP ' + response.status)
+    const data = await response.json()
+    if (!active()) return
+    if (data.kind === 'NO_DIRECTION_DATA') {
+      element('p', panel, '尚未发布方向研究产物。')
+      return
+    }
+    const {latest, historical, paired} = data
+    const selectorLabel = element('label', panel, '预测批次 ')
+    const selector = element('select', selectorLabel)
+    for (const batch of [...data.archive].reverse()) {
+      const option = element('option', selector, batch.date + ' · ' + batch.generated_at + ' · ' + batch.maturity)
+      option.value = batch.key
+      option.selected = batch.prediction_sha256 === latest.prediction_sha256
+    }
+    const details = element('div', panel)
+    renderBatch(details, latest, historical)
+    selector.onchange = async () => {
+      const key = selector.value
+      details.replaceChildren()
+      try {
+        const response = await fetch('/api/extensions/aql.research/direction/' + encodeURIComponent(key), {credentials:'same-origin'})
+        if (!response.ok) throw new Error('HTTP ' + response.status)
+        const view = await response.json()
+        if (active() && key === selector.value) renderBatch(details, view, historical)
+      } catch (error) {
+        if (active() && key === selector.value) element('p', details, '无法读取该批次 · ' + error.message)
+      }
+    }
+    element('h3', panel, '合格前瞻配对结果')
+    for (const [key, group] of Object.entries(paired)) {
+      element('p', panel, (key === 'including_recent' ? '含近期 B2' : '原四种方法') + ' · ' + group.dates + ' 日 · ' + group.pairs + ' 对')
+      if (!group.pairs) {
+        element('p', panel, '暂无合格成熟样本。', style.dim)
+        continue
+      }
+      for (const [name, scores] of Object.entries(group.metrics)) {
+        element('p', panel, name + ' · log loss ' + metric(scores.log_loss) + ' · Brier ' + metric(scores.brier), style.dim)
+      }
+    }
+  } catch (error) {
+    if (active()) element('p', panel, '方向研究读取失败 · ' + error.message)
+  }
+}
 const extension = {
   id: eid,
   apiVersion: 1,
@@ -26,10 +109,13 @@ const extension = {
     mount: (el, ctx) => {
       const root = element('section', el, null, style.shell)
       element('h2', root, 'A 股 Qlib 选股实验室', 'font-size:24px;font-weight:650')
-      element('p', root, '仅展示历史实验结果；不代表当日买卖建议、胜率或实际盈利。', style.dim)
-      const state = element('p', root, '读取研究产物中…', style.dim)
-      const content = element('div', root)
       let disposed = false
+      const direction = element('section', root, null, style.card + ';overflow-x:auto')
+      showDirection(direction, () => !disposed)
+      const ranking = element('details', root, null, style.card)
+      element('summary', ranking, '查看历史排名实验')
+      const state = element('p', ranking, '读取研究产物中…', style.dim)
+      const content = element('div', ranking)
       async function load() {
         try {
           const res = await fetch('/api/extensions/aql.research/latest', {method:'GET', credentials:'same-origin', headers:{Accept:'application/json'}})

@@ -1,0 +1,19 @@
+{
+  "work_package": "WP-AQL-DIRECTION-DIAGNOSIS-02",
+  "evaluation": [
+    "2024-01-03",
+    "2026-09-30"
+  ],
+  "train_sessions": 756,
+  "valid_sessions": 126,
+  "calibration_sessions": 126,
+  "horizon": 10,
+  "update": "monthly",
+  "seed": 23,
+  "bootstrap_block": 20,
+  "bootstrap_replicates": 2000,
+  "epsilon": 1e-06,
+  "threshold": 0.5,
+  "refit": "trailing_train_window_through_valid_end",
+  "recent_baseline": "monthly_calibration_label_frequency_beta_1_1"
+}
